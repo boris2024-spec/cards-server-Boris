@@ -43,37 +43,68 @@ export const createNewCard = async (card, userId) => {
 };
 
 //update
-export const updateCard = async (id, newCard) => {
-  // fetch existing to protect immutable fields & validate combined result
-  const existing = await getCardByIdFromDb(id);
-  if (!existing) return null;
+export const updateCard = async (id, newCard = {}) => {
+  try {
+    const existing = await getCardByIdFromDb(id);
+    if (!existing) return null;
 
-  // Prevent changing immutable fields
-  if (newCard.user_id && newCard.user_id !== existing.user_id) {
-    console.log("Attempt to change user_id blocked");
+    // Remove forbidden / immutable fields from incoming object
+    delete newCard._id;
     delete newCard.user_id;
-  }
-  if (newCard.bizNumber && newCard.bizNumber !== existing.bizNumber) {
-    console.log("Attempt to change bizNumber blocked");
-    delete newCard.bizNumber;
-  }
+    delete newCard.bizNumber; // change via dedicated endpoint
+    delete newCard.likes; // change via like toggle
+    delete newCard.__v;
+    delete newCard.createdAt;
+    delete newCard.updatedAt;
 
-  const candidate = {
-    ...existing.toObject(),
-    ...newCard,
-    user_id: existing.user_id,
-    bizNumber: existing.bizNumber,
-    likes: existing.likes, // keep likes untouched via this route
-  };
+    // Build merged candidate ONLY with fields defined in validation schema
+    const candidate = {
+      title: newCard.title ?? existing.title,
+      subtitle: newCard.subtitle ?? existing.subtitle,
+      description: newCard.description ?? existing.description,
+      phone: newCard.phone ?? existing.phone,
+      email: newCard.email ?? existing.email,
+      web: newCard.web ?? existing.web,
+      image: {
+        url: newCard.image?.url ?? existing.image?.url ?? "",
+        alt: newCard.image?.alt ?? existing.image?.alt ?? "",
+      },
+      address: {
+        state: newCard.address?.state ?? existing.address?.state ?? "",
+        country: newCard.address?.country ?? existing.address?.country,
+        city: newCard.address?.city ?? existing.address?.city,
+        street: newCard.address?.street ?? existing.address?.street,
+        houseNumber: newCard.address?.houseNumber ?? existing.address?.houseNumber,
+        zip: newCard.address?.zip ?? existing.address?.zip,
+      },
+      bizNumber: existing.bizNumber, // immutable here
+      user_id: existing.user_id, // immutable
+    };
 
-  const { error } = validateCard(candidate);
-  if (error) {
-    console.log("Card update validation failed:", error.details[0].message);
+    const { error } = validateCard(candidate);
+    if (error) {
+      console.log("Card update validation failed:", error.details[0].message);
+      return null;
+    }
+
+    // Prepare update document (exclude immutable + derived fields)
+    const updateDoc = {
+      title: candidate.title,
+      subtitle: candidate.subtitle,
+      description: candidate.description,
+      phone: candidate.phone,
+      email: candidate.email,
+      web: candidate.web,
+      image: candidate.image,
+      address: candidate.address,
+    };
+
+    const modifiedCard = await updateCardInDb(id, updateDoc);
+    return modifiedCard;
+  } catch (err) {
+    console.log("Card update error:", err?.errors || err?.message || err);
     return null;
   }
-
-  const modifiedCard = await updateCardInDb(id, newCard);
-  return modifiedCard;
 };
 
 //delete

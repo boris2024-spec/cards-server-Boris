@@ -1,5 +1,5 @@
 import express from "express";
-import { createNewUser, login, deleteUserCascade } from "../services/usersService.js";
+import { createNewUser, login, deleteUser } from "../services/usersService.js";
 import { auth } from "../../auth/services/authService.js";
 
 const router = express.Router();
@@ -30,9 +30,9 @@ router.delete("/:id", auth, async (req, res) => {
   if (!requester.isAdmin && requester._id !== id) {
     return res.status(403).send("Only admin or the user himself can delete the user");
   }
-  const result = await deleteUserCascade(id);
+  const result = await deleteUser(id);
   if (!result) return res.status(400).send("could not delete user");
-  res.send({ deleted: true, ...result });
+  res.send({ deleted: true, ...result, cascade: "handled by hook" });
 });
 
 export default router;
