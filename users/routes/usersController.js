@@ -1,5 +1,5 @@
 import express from "express";
-import { createNewUser, login, deleteUser, getAllUsers } from "../services/usersService.js";
+import { createNewUser, login, deleteUser, getAllUsers, updateUser } from "../services/usersService.js";
 import { auth, requireAdmin } from "../../auth/services/authService.js";
 
 const router = express.Router();
@@ -29,7 +29,7 @@ router.get("/", auth, requireAdmin, async (req, res) => {
   res.send(users);
 });
 
-router.delete("/:id", auth, async (req, res) => {
+router.delete("/:id", auth, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const requester = req.user;
   if (!requester.isAdmin && requester._id !== id) {
@@ -38,6 +38,18 @@ router.delete("/:id", auth, async (req, res) => {
   const result = await deleteUser(id);
   if (!result) return res.status(400).send("could not delete user");
   res.send({ deleted: true, ...result, cascade: "handled by hook" });
+});
+
+// Update user (self or admin). Admin may update any user. Non-admin may only update self and cannot grant admin.
+router.put("/:id", auth, async (req, res) => {
+  const { id } = req.params;
+  const requester = req.user;
+  if (!requester.isAdmin && requester._id !== id) {
+    return res.status(403).send("Only admin or the user himself can update the user");
+  }
+  const updated = await updateUser(requester, id, req.body);
+  if (!updated) return res.status(400).send("could not update user");
+  res.send(updated);
 });
 
 export default router;

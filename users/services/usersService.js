@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { generateToken } from "../../auth/providers/jwtProvider.js";
 import { comparePassword, generatePassword } from "../helpers/bcrypt.js";
-import { createUser, getUserByEmail, deleteUserInDb, getAllUsersFromDb, countUsersInDb } from "./usersDataService.js";
+import { createUser, getUserByEmail, deleteUserInDb, getAllUsersFromDb, countUsersInDb, updateUserInDb } from "./usersDataService.js";
 
 export const createNewUser = async (user) => {
   // не позволяем напрямую прислать isAdmin/isBusiness
@@ -40,4 +40,28 @@ export const getAllUsers = async () => {
   const users = await getAllUsersFromDb();
   if (!users) return null;
   return users.map((u) => _.pick(u, ["_id", "email", "name", "isAdmin", "isBusiness", "createdAt"]));
+};
+
+// Update user: only admin or the user himself may update. Non-admin cannot elevate to admin.
+export const updateUser = async (requester, userId, updates) => {
+  // sanitize disallowed direct fields
+  const cleanUpdates = { ...updates };
+  delete cleanUpdates._id;
+  delete cleanUpdates.createdAt;
+
+  // handle password change if provided
+  if (cleanUpdates.password) {
+    cleanUpdates.password = generatePassword(cleanUpdates.password);
+  }
+
+  // only admin can set isAdmin flag
+  if (!requester.isAdmin) {
+    if (Object.prototype.hasOwnProperty.call(cleanUpdates, "isAdmin")) {
+      delete cleanUpdates.isAdmin;
+    }
+  }
+
+  const updated = await updateUserInDb(userId, cleanUpdates);
+  if (!updated) return null;
+  return _.pick(updated, ["_id", "email", "name", "isAdmin", "isBusiness", "createdAt", "address", "image", "phone"]);
 };
