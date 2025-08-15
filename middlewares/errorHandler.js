@@ -13,6 +13,8 @@ export const notFoundHandler = (req, res, next) => {
     next(new AppError(`Route ${req.method} ${req.originalUrl} not found`, 404));
 };
 
+import chalk from "chalk";
+
 export const errorHandler = (err, req, res, next) => {
     const status = err.statusCode || 500;
     const isProd = process.env.NODE_ENV === "production";
@@ -24,8 +26,10 @@ export const errorHandler = (err, req, res, next) => {
     };
     if (err.details) payload.error.details = err.details;
     if (!isProd && err.stack) payload.error.stack = err.stack;
-    // Basic logging
-    console.error(`[ERROR] ${req.method} ${req.originalUrl} -> ${status}:`, err.message);
+    // Colored logging: errors always red
+    const line = `[ERROR] ${req.method} ${req.originalUrl} -> ${status}: ${err.message}`;
+    // Red background with white (bold) text for stronger visibility
+    console.error(chalk.bgRed.white.bold(line));
     res.status(status).json(payload);
 };
 
