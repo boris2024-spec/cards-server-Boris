@@ -21,11 +21,12 @@ const cardSchema = new Schema({
   image: Image,
   address: Address,
   bizNumber: {
+    // 7-digit unique business number generated server-side
     type: Number,
-    minLength: 7,
-    maxLength: 7,
+    min: 1000000,
+    max: 9999999,
     required: true,
-    trim: true,
+    unique: true,
   },
   likes: [String],
   createdAt: {

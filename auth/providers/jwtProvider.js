@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const secretWord = "2n3i8h2d239ruj23";
+const secretWord = process.env.JWT_SECRET || "dev_jwt_secret_change_me";
 
 export const generateToken = (user) => {
   const token = jwt.sign(

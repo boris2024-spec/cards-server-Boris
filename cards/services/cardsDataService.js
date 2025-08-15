@@ -57,3 +57,25 @@ export const deleteCardInDb = async (id) => {
     return null;
   }
 };
+
+// delete all cards of a user, return deleted count
+export const deleteCardsByUserId = async (userId) => {
+  try {
+    const res = await Card.deleteMany({ user_id: userId });
+    return res.deletedCount || 0;
+  } catch (error) {
+    console.log(error);
+    return 0;
+  }
+};
+
+// remove userId from likes arrays across all cards, return modified count
+export const removeLikesOfUser = async (userId) => {
+  try {
+    const res = await Card.updateMany({ likes: userId }, { $pull: { likes: userId } });
+    return res.modifiedCount || 0;
+  } catch (error) {
+    console.log(error);
+    return 0;
+  }
+};
