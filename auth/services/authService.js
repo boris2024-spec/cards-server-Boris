@@ -13,3 +13,10 @@ export const auth = (req, res, next) => {
   req.user = userInfo;
   next();
 };
+
+export const requireAdmin = (req, res, next) => {
+  if (!req.user?.isAdmin) {
+    return res.status(403).send("Access denied: admin only");
+  }
+  next();
+};

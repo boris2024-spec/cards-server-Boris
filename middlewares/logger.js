@@ -14,20 +14,38 @@ const pad = (n) => String(n).padStart(2, "0");
 
 export default function logger(req, res, next) {
   const start = process.hrtime.bigint();
+
+  // Перехват writeHead чтобы можно было позже добавить сообщение (опционально)
+  res.locals = res.locals || {};
+
   res.on("finish", () => {
     const end = process.hrtime.bigint();
     const diffMs = Number(end - start) / 1_000_000; // convert ns to ms
+
     const now = new Date();
-    const timestamp = `[${now.getFullYear()}/${pad(now.getMonth() + 1)}/${pad(
-      now.getDate()
-    )} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(
-      now.getSeconds()
-    )}]`;
-    const base = `${timestamp} ${req.method} ${req.originalUrl} ${res.statusCode} – ${diffMs.toFixed(1)} ms`;
-    const colored = res.statusCode >= 400
-      ? chalk.redBright(`[ERROR] ${base}`)
-      : chalk.bgGreen.black(`[OK] ${base}`);
-    console.log(colored);
+    const timestamp =
+      `[${now.getFullYear()}/${pad(now.getMonth() + 1)}/${pad(now.getDate())} ` +
+      `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}]`;
+
+    const status = res.statusCode;
+    const statusColored =
+      status >= 500
+        ? chalk.red(status)
+        : status >= 400
+          ? chalk.yellow(status)
+          : status >= 300
+            ? chalk.cyan(status)
+            : chalk.green(status);
+
+    let line = `${timestamp} ${req.method} ${req.originalUrl} ${statusColored} – ${diffMs.toFixed(1)} ms`;
+
+    if (status >= 400) {
+      const msg = res.locals.errorMessage || res.statusMessage;
+      if (msg) line += ` -> ${msg}`;
+    }
+
+    console.log(line);
   });
+
   next();
 }

@@ -11,6 +11,15 @@ export const getAllUsersFromDb = async () => {
   }
 };
 
+export const countUsersInDb = async () => {
+  try {
+    return await User.countDocuments();
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
 //get one by id
 export const getUserByIdFromDb = async (id) => {
   try {

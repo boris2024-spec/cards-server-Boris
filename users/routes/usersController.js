@@ -1,17 +1,15 @@
 import express from "express";
-import { createNewUser, login, deleteUser } from "../services/usersService.js";
-import { auth } from "../../auth/services/authService.js";
+import { createNewUser, login, deleteUser, getAllUsers } from "../services/usersService.js";
+import { auth, requireAdmin } from "../../auth/services/authService.js";
 
 const router = express.Router();
 
+// Registration. Optional adminCode to elevate if matches ADMIN_REG_CODE. First user becomes admin automatically.
 router.post("/", async (req, res) => {
   const newUser = req.body;
   const user = await createNewUser(newUser);
-  if (user) {
-    res.status(201).send(user);
-  } else {
-    res.status(400).send("somehing went wrong with registration");
-  }
+  if (user) return res.status(201).send(user);
+  res.status(400).send("somehing went wrong with registration");
 });
 
 router.post("/login", async (req, res) => {
@@ -22,6 +20,13 @@ router.post("/login", async (req, res) => {
   } else {
     res.status(401).send("invalid email or password");
   }
+});
+
+// GET all users (admin only)
+router.get("/", auth, requireAdmin, async (req, res) => {
+  const users = await getAllUsers();
+  if (!users) return res.status(500).send("could not get users");
+  res.send(users);
 });
 
 router.delete("/:id", auth, async (req, res) => {
