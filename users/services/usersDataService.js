@@ -43,16 +43,30 @@ export const createUser = async (user) => {
     await userForDb.save();
     return userForDb;
   } catch (error) {
-    console.log(error);
+    console.error("Mongo error in createUser:", error);
+    // Duplicate key (unique index) - focus on email if present
     if (error.code === 11000) {
-      // duplicate key (likely email unique)
-      throw new AppError("Email already registered", 409);
+      if (error.keyPattern?.email) {
+        throw new AppError("Email already registered", 409);
+      }
+      // Generic duplicate key
+      throw new AppError("Duplicate key error", 409, error.keyValue);
     }
+    // Validation (Mongoose)
     if (error.name === "ValidationError") {
       const details = Object.values(error.errors).map((e) => e.message);
       throw new AppError("User validation failed", 400, details);
     }
-    throw new AppError("Failed to create user", 500, error.message);
+    // Network / connectivity errors
+    if (
+      error.name === "MongoNetworkError" ||
+      error.name === "MongooseServerSelectionError" ||
+      (typeof error.message === "string" && error.message.includes("ECONNREFUSED"))
+    ) {
+      throw new AppError("Database connection error", 503);
+    }
+    // Other Mongo / server errors
+    throw new AppError("MongoDb - Error in creating new user", 500, error.message);
   }
 };
 

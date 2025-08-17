@@ -28,18 +28,45 @@ export const createNewCard = async (card, userId) => {
     try {
       card.bizNumber = await generateBizNumber();
     } catch (e) {
-      console.log(e.message);
-      return null;
+      console.log("BizNumber generation failed:", e.message);
+      return {
+        errors: [
+          {
+            path: "bizNumber",
+            message: e.message || "failed to generate bizNumber",
+          },
+        ],
+      };
     }
   }
   card.user_id = userId;
-  const { error } = validateCard(card);
+  const { error, value } = validateCard(card);
   if (error) {
-    console.log(error.details[0].message);
-    return null;
+    return {
+      errors: error.details.map((d) => ({
+        path: d.path.join('.'),
+        message: d.message,
+      })),
+    };
   }
-  const newCard = await createCard(card);
-  return newCard;
+  try {
+    const newCard = await createCard(value);
+    if (!newCard) {
+      return {
+        errors: [
+          { path: 'general', message: 'failed to persist card (unknown reason)' },
+        ],
+      };
+    }
+    return { card: newCard };
+  } catch (err) {
+    console.log("Card creation DB error:", err?.message || err);
+    return {
+      errors: [
+        { path: 'general', message: err?.message || 'card creation failed' },
+      ],
+    };
+  }
 };
 
 //update
@@ -81,29 +108,33 @@ export const updateCard = async (id, newCard = {}) => {
       user_id: existing.user_id, // immutable
     };
 
-    const { error } = validateCard(candidate);
+    const { error, value } = validateCard(candidate);
     if (error) {
-      console.log("Card update validation failed:", error.details[0].message);
-      return null;
+      return {
+        errors: error.details.map((d) => ({
+          path: d.path.join('.'),
+          message: d.message,
+        })),
+      };
     }
 
     // Prepare update document (exclude immutable + derived fields)
     const updateDoc = {
-      title: candidate.title,
-      subtitle: candidate.subtitle,
-      description: candidate.description,
-      phone: candidate.phone,
-      email: candidate.email,
-      web: candidate.web,
-      image: candidate.image,
-      address: candidate.address,
+      title: value.title,
+      subtitle: value.subtitle,
+      description: value.description,
+      phone: value.phone,
+      email: value.email,
+      web: value.web,
+      image: value.image,
+      address: value.address,
     };
 
     const modifiedCard = await updateCardInDb(id, updateDoc);
-    return modifiedCard;
+    return { card: modifiedCard };
   } catch (err) {
     console.log("Card update error:", err?.errors || err?.message || err);
-    return null;
+    return { errors: [{ path: 'general', message: err?.message || 'update failed' }] };
   }
 };
 

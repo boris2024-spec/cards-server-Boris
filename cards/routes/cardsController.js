@@ -29,13 +29,14 @@ router.post("/", auth, async (req, res) => {
   if (!user.isBusiness) {
     return res.status(403).send("Only Business user can create cards");
   }
-  const cardResult = await createNewCard(newCard, user._id);
-
-  if (cardResult) {
-    res.status(201).send(cardToDTO(cardResult, user));
-  } else {
-    res.status(400).send("something went wrong with card creation");
+  const result = await createNewCard(newCard, user._id);
+  if (result.card) {
+    return res.status(201).send(cardToDTO(result.card, user));
   }
+  return res.status(400).send({
+    message: "card validation failed",
+    errors: result.errors || [],
+  });
 });
 
 router.get("/:id", async (req, res) => {
@@ -54,9 +55,12 @@ router.delete("/:id", auth, loadCard, requireOwnerOrAdmin, async (req, res) => {
 });
 
 router.put("/:id", auth, loadCard, requireOwnerOrAdmin, async (req, res) => {
-  const modifiedCard = await updateCard(req.params.id, req.body);
-  if (modifiedCard) return res.send(cardToDTO(modifiedCard, req.user));
-  res.status(400).send("something went wrong with card edit");
+  const result = await updateCard(req.params.id, req.body);
+  if (result.card) return res.send(cardToDTO(result.card, req.user));
+  return res.status(400).send({
+    message: "card update failed",
+    errors: result.errors || [],
+  });
 });
 
 router.patch("/:id/like", auth, async (req, res) => {

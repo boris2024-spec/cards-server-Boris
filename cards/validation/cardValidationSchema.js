@@ -1,48 +1,69 @@
 import Joi from "joi";
 
-const urlRegex =
-  /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
+// Унифицированный регэксп URL
+const urlRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][\w-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][\w-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
+
+// Пользовательский валидатор для bizNumber (7 цифр) с пустым значением до генерации
+const bizNumberRule = Joi.alternatives().try(
+  Joi.number()
+    .integer()
+    .min(1000000)
+    .max(9999999)
+    .messages({
+      "number.base": "bizNumber must be 7 digits",
+      "number.min": "bizNumber must be 7 digits",
+      "number.max": "bizNumber must be 7 digits",
+    }),
+  Joi.string().allow("") // промежуточно может быть пустой перед присвоением
+);
+
+const requiredMsg = (field) => ({ "any.required": `${field} is required` });
 
 const cardSchema = Joi.object({
-  title: Joi.string().min(2).max(256).required(),
-  subtitle: Joi.string().min(2).max(256).required(),
-  description: Joi.string().min(2).max(1024).required(),
+  title: Joi.string().min(2).max(256).required().messages(requiredMsg("title")),
+  subtitle: Joi.string().min(2).max(256).required().messages(requiredMsg("subtitle")),
+  description: Joi.string().min(2).max(1024).required().messages(requiredMsg("description")),
   phone: Joi.string()
-    .ruleset.regex(/0[0-9]{1,2}\-?\s?[0-9]{3}\s?[0-9]{4}/)
-    .rule({ message: 'card "phone" mast be a valid phone number' })
-    .required(),
+    .pattern(/0[0-9]{1,2}-?\s?[0-9]{3}\s?[0-9]{4}/)
+    .required()
+    .messages({
+      ...requiredMsg("phone"),
+      "string.pattern.base": "phone must be a valid phone number (e.g. 050-123 4567)",
+    }),
   email: Joi.string()
-    .ruleset.pattern(
-      /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/
-    )
-    .rule({ message: 'card "mail" mast be a valid mail' })
-    .required(),
-
+    .pattern(/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/)
+    .required()
+    .messages({
+      ...requiredMsg("email"),
+      "string.pattern.base": "email must be a valid email",
+    }),
   web: Joi.string()
-    .ruleset.regex(urlRegex)
-    .rule({ message: 'card "web" mast be a valid url' })
-    .allow(""),
-
-  image: Joi.object()
-    .keys({
-      url: Joi.string()
-        .ruleset.regex(urlRegex)
-        .rule({ message: 'card.image "url" mast be a valid url' })
-        .allow(""),
-      alt: Joi.string().min(2).max(256).allow(""),
-    })
-    .required(),
-  address: Joi.object()
-    .keys({
-      state: Joi.string().allow(""),
-      country: Joi.string().min(2).max(256).required(),
-      city: Joi.string().min(2).max(256).required(),
-      street: Joi.string().min(2).max(256).required(),
-      houseNumber: Joi.number().required(),
-      zip: Joi.number(),
-    })
-    .required(),
-  bizNumber: Joi.number().allow(""),
+    .pattern(urlRegex)
+    .allow("")
+    .messages({ "string.pattern.base": "web must be a valid url" }),
+  image: Joi.object({
+    url: Joi.string()
+      .pattern(urlRegex)
+      .allow("")
+      .messages({ "string.pattern.base": "image.url must be a valid url" }),
+    alt: Joi.string()
+      .min(2)
+      .max(256)
+      .allow("")
+      .messages({ "string.min": "image.alt must have at least 2 chars" }),
+  }).required(),
+  address: Joi.object({
+    state: Joi.string().allow(""),
+    country: Joi.string().min(2).max(256).required().messages(requiredMsg("country")),
+    city: Joi.string().min(2).max(256).required().messages(requiredMsg("city")),
+    street: Joi.string().min(2).max(256).required().messages(requiredMsg("street")),
+    houseNumber: Joi.number().required().messages({
+      ...requiredMsg("houseNumber"),
+      "number.base": "houseNumber must be a number",
+    }),
+    zip: Joi.number().allow("", null),
+  }).required(),
+  bizNumber: bizNumberRule,
   user_id: Joi.string().allow(""),
 });
 
