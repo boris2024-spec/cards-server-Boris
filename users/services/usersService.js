@@ -2,6 +2,7 @@ import _ from "lodash";
 import { generateToken } from "../../auth/providers/jwtProvider.js";
 import { comparePassword, generatePassword } from "../helpers/bcrypt.js";
 import { createUser, getUserByEmail, deleteUserInDb, getAllUsersFromDb, countUsersInDb, updateUserInDb } from "./usersDataService.js";
+import { AppError } from "../../middlewares/errorHandler.js";
 
 export const createNewUser = async (user) => {
   // не позволяем напрямую прислать isAdmin/isBusiness
@@ -16,29 +17,27 @@ export const createNewUser = async (user) => {
     password: generatePassword(password),
   };
 
-  const newUser = await createUser(userForDb);
-  if (!newUser) return null;
+  const newUser = await createUser(userForDb); // createUser бросит ошибку при проблеме
   const DTOuser = _.pick(newUser, ["email", "name", "_id", "isAdmin", "isBusiness"]);
   return DTOuser;
 };
 
 export const login = async (email, password) => {
   const user = await getUserByEmail(email);
-  if (comparePassword(password, user?.password)) {
-    return generateToken(user);
+  if (!user) throw new AppError("Invalid email or password", 401);
+  if (!comparePassword(password, user?.password)) {
+    throw new AppError("Invalid email or password", 401);
   }
-  return null;
+  return generateToken(user);
 };
 
 export const deleteUser = async (userId) => {
-  const deletedUserId = await deleteUserInDb(userId); // cascade cleanup handled by mongoose hook
-  if (!deletedUserId) return null;
+  const deletedUserId = await deleteUserInDb(userId); // deleteUserInDb бросит ошибку если не найден
   return { userId: deletedUserId };
 };
 
 export const getAllUsers = async () => {
   const users = await getAllUsersFromDb();
-  if (!users) return null;
   return users.map((u) => _.pick(u, ["_id", "email", "name", "isAdmin", "isBusiness", "createdAt"]));
 };
 
@@ -61,7 +60,6 @@ export const updateUser = async (requester, userId, updates) => {
     }
   }
 
-  const updated = await updateUserInDb(userId, cleanUpdates);
-  if (!updated) return null;
+  const updated = await updateUserInDb(userId, cleanUpdates); // бросит 404 при отсутствии
   return _.pick(updated, ["_id", "email", "name", "isAdmin", "isBusiness", "createdAt", "address", "image", "phone"]);
 };
