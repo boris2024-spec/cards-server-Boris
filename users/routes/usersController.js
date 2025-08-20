@@ -1,5 +1,5 @@
 import express from "express";
-import { createNewUser, login, deleteUser, getAllUsers, updateUser } from "../services/usersService.js";
+import { createNewUser, login, deleteUser, getAllUsers, updateUser, getUserById } from "../services/usersService.js";
 import { auth, requireAdmin } from "../../auth/services/authService.js";
 import { asyncHandler } from "../../middlewares/errorHandler.js";
 import { AppError } from "../../middlewares/errorHandler.js";
@@ -24,7 +24,16 @@ router.get("/", auth, requireAdmin, asyncHandler(async (req, res) => {
   res.send(users);
 }));
 
-router.delete("/:id", auth, requireAdmin, asyncHandler(async (req, res) => {
+// Get single user (self or admin)
+router.get("/:id", auth, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const requester = req.user;
+  const user = await getUserById(requester, id);
+  res.send(user);
+}));
+
+// Delete user: admin or the user himself. (requireAdmin removed to allow self-deletion)
+router.delete("/:id", auth, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const requester = req.user;
   if (!requester.isAdmin && requester._id !== id) {

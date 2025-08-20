@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
 
-export const connectToDb = () => {
-  mongoose
-    .connect("mongodb://127.0.0.1:27017/business_card_app")
-    .then(() => console.log("connected to MongoDb Locally!"))
-    .catch((error) => console.log(`could not connect to mongoDb: ${error}`));
+// Connect to MongoDB and propagate errors so caller can handle (e.g., exit on startup failure)
+export const connectToDb = async (uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/business_card_app") => {
+  try {
+    await mongoose.connect(uri);
+    console.log(`connected to MongoDb: ${uri}`);
+  } catch (error) {
+    console.log(`could not connect to mongoDb: ${error}`);
+    throw error;
+  }
 };

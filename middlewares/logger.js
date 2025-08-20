@@ -37,7 +37,16 @@ export default function logger(req, res, next) {
             ? chalk.cyan(status)
             : chalk.green(status);
 
-    let line = `${timestamp} ${req.method} ${req.originalUrl} ${statusColored} – ${diffMs.toFixed(1)} ms`;
+    // Собираем краткую информацию о пользователе (если auth уже отработал и положил req.user)
+    let userInfo = 'guest';
+    if (req.user) {
+      const { _id, isAdmin, isBusiness } = req.user;
+      // Формат: <id>(A?)(B?)
+      const flags = `${isAdmin ? 'A' : ''}${isBusiness ? 'B' : ''}`;
+      userInfo = `${_id || 'no-id'}${flags ? '[' + flags + ']' : ''}`;
+    }
+
+    let line = `${timestamp} ${req.method} ${req.originalUrl} ${statusColored} – ${diffMs.toFixed(1)} ms – user:${userInfo}`;
 
     if (status >= 400) {
       const msg = res.locals.errorMessage || res.statusMessage;

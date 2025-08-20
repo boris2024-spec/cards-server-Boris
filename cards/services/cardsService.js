@@ -6,12 +6,19 @@ import {
   getCardByIdFromDb,
   updateCardInDb,
 } from "./cardsDataService.js";
+import { getCardsByUserIdFromDb } from "./cardsDataService.js";
 import { generateBizNumber } from "./bizNumberService.js";
 import Card from "../models/Card.js";
 
 //get all
 export const getAllCards = async () => {
   const cards = await getAllCardsFromDb();
+  return cards;
+};
+
+//get cards of the authenticated business user
+export const getMyCards = async (userId) => {
+  const cards = await getCardsByUserIdFromDb(userId);
   return cards;
 };
 
@@ -147,19 +154,20 @@ export const deleteCard = async (id) => {
 //toggleLike
 export const toggleLike = async (cardId, userId) => {
   try {
-    const card = await Card.findById(cardId);
-    if (!card) return null;
-    const idx = card.likes.findIndex((uid) => uid === userId);
-    if (idx === -1) {
-      card.likes.push(userId);
-    } else {
-      card.likes.splice(idx, 1);
-    }
-    await card.save();
-    return card;
+    // Получаем только поле лайков для проверки существования
+    const existing = await Card.findById(cardId).select("_id likes");
+    if (!existing) return { notFound: true };
+
+    const hasLike = existing.likes?.includes(userId);
+    const update = hasLike
+      ? { $pull: { likes: userId } }
+      : { $addToSet: { likes: userId } }; // addToSet предотвращает дубликаты
+
+    const updated = await Card.findByIdAndUpdate(cardId, update, { new: true });
+    return { card: updated };
   } catch (error) {
-    console.log(error);
-    return null;
+    console.log("toggleLike error", error);
+    return { error };
   }
 };
 

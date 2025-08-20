@@ -79,3 +79,13 @@ export const removeLikesOfUser = async (userId) => {
     return 0;
   }
 };
+
+// get cards by owner user id
+export const getCardsByUserIdFromDb = async (userId) => {
+  try {
+    return await Card.find({ user_id: userId });
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};

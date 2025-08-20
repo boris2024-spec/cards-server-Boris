@@ -7,6 +7,7 @@ import {
   updateCard,
   toggleLike,
   changeBizNumber,
+  getMyCards,
 } from "../services/cardsService.js";
 import { auth } from "../../auth/services/authService.js";
 import { getCardByIdFromDb } from "../services/cardsDataService.js";
@@ -22,6 +23,26 @@ router.get("/", async (req, res) => {
   }
   res.status(500).send("something went wrong with get all cards");
 });
+
+// Deprecated: /cards/my (will be removed later) -> prefer /cards/sandbox
+const sendOwnCards = async (req, res) => {
+  const user = req.user;
+  if (!user.isBusiness) {
+    return res.status(403).send("Only Business user can view own cards");
+  }
+  const cards = await getMyCards(user._id);
+  return res.send(cardsToDTO(cards, user));
+};
+
+router.get("/my", auth, async (req, res) => {
+  res.setHeader("Warning", "299 - 'GET /cards/my' is deprecated; use /cards/sandbox");
+  await sendOwnCards(req, res);
+});
+
+router.get("/sandbox", auth, sendOwnCards);
+
+// Alias for frontend compatibility (/my-cards -> sandbox)
+router.get("/my-cards", auth, sendOwnCards);
 
 router.post("/", auth, async (req, res) => {
   const newCard = req.body;
@@ -66,10 +87,40 @@ router.put("/:id", auth, loadCard, requireOwnerOrAdmin, async (req, res) => {
 router.patch("/:id/like", auth, async (req, res) => {
   const { id } = req.params;
   const userId = req.user._id;
-  const updated = await toggleLike(id, userId);
-  if (!updated)
+  const result = await toggleLike(id, userId);
+  if (result?.notFound) return res.status(404).send("Card not found");
+  if (result?.error || !result?.card)
     return res.status(400).send("something went wrong with like toggle");
-  res.send(cardToDTO(updated, req.user));
+  res.send(cardToDTO(result.card, req.user));
+});
+
+router.patch("/:id", auth, async (req, res) => {
+  // If body is empty, treat as like toggle for compatibility with frontend
+  if (!req.body || Object.keys(req.body).length === 0) {
+    const { id } = req.params;
+    const userId = req.user._id;
+    const result = await toggleLike(id, userId);
+    if (result?.notFound) return res.status(404).send("Card not found");
+    if (result?.error || !result?.card)
+      return res.status(400).send("something went wrong with like toggle");
+    return res.send(cardToDTO(result.card, req.user));
+  }
+
+  // Otherwise, it's a card update - check permissions
+  const card = await getCardByIdFromDb(req.params.id);
+  if (!card) return res.status(404).send("Card not found");
+
+  const user = req.user;
+  if (!user.isAdmin && user._id !== card.user_id) {
+    return res.status(403).send("Access denied");
+  }
+
+  const result = await updateCard(req.params.id, req.body);
+  if (result.card) return res.send(cardToDTO(result.card, req.user));
+  return res.status(400).send({
+    message: "card update failed",
+    errors: result.errors || [],
+  });
 });
 
 router.patch("/:id/bizNumber", auth, loadCard, requireOwnerOrAdmin, async (req, res) => {

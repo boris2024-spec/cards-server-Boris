@@ -24,6 +24,7 @@ JWT_SECRET=change_me
 JWT_EXPIRES=1h
 ADMIN_REG_CODE=your_admin_registration_code
 BIZNUM_MAX_RETRIES=5
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5500
 ```
 
 ### Скрипты
@@ -34,6 +35,20 @@ BIZNUM_MAX_RETRIES=5
 ### Структура ответов
 Успех: `{ "data": ... }`
 Ошибка: `{ "error": { "message": "...", "details": [ { path, message } ] } }`
+
+### Аутентификация (клиент)
+После успешного логина сервер возвращает JWT (строка). Клиент может отправлять его:
+- В заголовке `Authorization: Bearer <token>` (рекомендовано)
+- Или в заголовке `x-auth-token: <token>` (обратная совместимость)
+
+Пример (fetch):
+```js
+const token = await loginAndGetToken();
+fetch('/cards', { headers: { Authorization: `Bearer ${token}` }});
+```
+
+### CORS
+Разрешённые origin можно расширять через `CORS_ORIGINS` (список через запятую). По умолчанию: `http://localhost:5173`, `http://127.0.0.1:5500`.
 
 ### Основные эндпоинты
 `POST /users` – регистрация

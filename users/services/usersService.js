@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { generateToken } from "../../auth/providers/jwtProvider.js";
 import { comparePassword, generatePassword } from "../helpers/bcrypt.js";
-import { createUser, getUserByEmail, deleteUserInDb, getAllUsersFromDb, countUsersInDb, updateUserInDb } from "./usersDataService.js";
+import { createUser, getUserByEmail, deleteUserInDb, getAllUsersFromDb, countUsersInDb, updateUserInDb, getUserByIdFromDb } from "./usersDataService.js";
 import { AppError } from "../../middlewares/errorHandler.js";
 
 export const createNewUser = async (user) => {
@@ -39,6 +39,15 @@ export const deleteUser = async (userId) => {
 export const getAllUsers = async () => {
   const users = await getAllUsersFromDb();
   return users.map((u) => _.pick(u, ["_id", "email", "name", "isAdmin", "isBusiness", "createdAt"]));
+};
+
+// Get single user (self or admin)
+export const getUserById = async (requester, userId) => {
+  if (!requester.isAdmin && requester._id !== userId) {
+    throw new AppError("Only admin or the user himself can view the user", 403);
+  }
+  const user = await getUserByIdFromDb(userId); // throws 404 if not found / 400 if bad id
+  return _.pick(user, ["_id", "email", "name", "isAdmin", "isBusiness", "createdAt", "address", "image", "phone"]);
 };
 
 // Update user: only admin or the user himself may update. Non-admin cannot elevate to admin.
