@@ -3,7 +3,18 @@ import Card from "../models/Card.js";
 //get all
 export const getAllCardsFromDb = async () => {
   try {
-    const cards = await Card.find();
+    const cards = await Card.find({ isBlocked: { $ne: true } }); // exclude blocked cards
+    return cards;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+//get all including blocked (admin only)
+export const getAllCardsFromDbAdmin = async () => {
+  try {
+    const cards = await Card.find(); // include all cards for admin
     return cards;
   } catch (error) {
     console.log(error);

@@ -29,6 +29,7 @@ const cardSchema = new Schema({
     unique: true,
   },
   likes: [String],
+  isBlocked: { type: Boolean, default: false },
   createdAt: {
     type: Date,
     default: Date.now,

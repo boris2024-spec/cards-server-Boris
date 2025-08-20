@@ -1,6 +1,6 @@
 import express from "express";
-import { createNewUser, login, deleteUser, getAllUsers, updateUser, getUserById } from "../services/usersService.js";
-import { auth, requireAdmin } from "../../auth/services/authService.js";
+import { createNewUser, login, deleteUser, getAllUsers, updateUser, getUserById, blockUser, unblockUser } from "../services/usersService.js";
+import { auth, requireAdmin, checkBlocked } from "../../auth/services/authService.js";
 import { asyncHandler } from "../../middlewares/errorHandler.js";
 import { AppError } from "../../middlewares/errorHandler.js";
 
@@ -44,7 +44,7 @@ router.delete("/:id", auth, asyncHandler(async (req, res) => {
 }));
 
 // Update user (self or admin). Admin may update any user. Non-admin may only update self and cannot grant admin.
-router.put("/:id", auth, asyncHandler(async (req, res) => {
+router.put("/:id", auth, checkBlocked, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const requester = req.user;
   if (!requester.isAdmin && requester._id !== id) {
@@ -52,6 +52,20 @@ router.put("/:id", auth, asyncHandler(async (req, res) => {
   }
   const updated = await updateUser(requester, id, req.body);
   res.send(updated);
+}));
+
+// Block user (admin only)
+router.patch("/:id/block", auth, requireAdmin, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const result = await blockUser(id);
+  res.send(result);
+}));
+
+// Unblock user (admin only)
+router.patch("/:id/unblock", auth, requireAdmin, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const result = await unblockUser(id);
+  res.send(result);
 }));
 
 export default router;

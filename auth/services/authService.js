@@ -34,3 +34,10 @@ export const requireAdmin = (req, res, next) => {
   }
   next();
 };
+
+export const checkBlocked = (req, res, next) => {
+  if (req.user?.isBlocked) {
+    return res.status(403).send("Access denied: user is blocked");
+  }
+  next();
+};

@@ -18,13 +18,14 @@ export const createNewUser = async (user) => {
   };
 
   const newUser = await createUser(userForDb); // createUser бросит ошибку при проблеме
-  const DTOuser = _.pick(newUser, ["email", "name", "_id", "isAdmin", "isBusiness"]);
+  const DTOuser = _.pick(newUser, ["email", "name", "_id", "isAdmin", "isBusiness", "isBlocked"]);
   return DTOuser;
 };
 
 export const login = async (email, password) => {
   const user = await getUserByEmail(email);
   if (!user) throw new AppError("Invalid email or password", 401);
+  if (user.isBlocked) throw new AppError("User is blocked", 403);
   if (!comparePassword(password, user?.password)) {
     throw new AppError("Invalid email or password", 401);
   }
@@ -38,7 +39,7 @@ export const deleteUser = async (userId) => {
 
 export const getAllUsers = async () => {
   const users = await getAllUsersFromDb();
-  return users.map((u) => _.pick(u, ["_id", "email", "name", "isAdmin", "isBusiness", "createdAt"]));
+  return users.map((u) => _.pick(u, ["_id", "email", "name", "isAdmin", "isBusiness", "isBlocked", "createdAt"]));
 };
 
 // Get single user (self or admin)
@@ -47,7 +48,7 @@ export const getUserById = async (requester, userId) => {
     throw new AppError("Only admin or the user himself can view the user", 403);
   }
   const user = await getUserByIdFromDb(userId); // throws 404 if not found / 400 if bad id
-  return _.pick(user, ["_id", "email", "name", "isAdmin", "isBusiness", "createdAt", "address", "image", "phone"]);
+  return _.pick(user, ["_id", "email", "name", "isAdmin", "isBusiness", "isBlocked", "createdAt", "address", "image", "phone"]);
 };
 
 // Update user: only admin or the user himself may update. Non-admin cannot elevate to admin.
@@ -67,8 +68,23 @@ export const updateUser = async (requester, userId, updates) => {
     if (Object.prototype.hasOwnProperty.call(cleanUpdates, "isAdmin")) {
       delete cleanUpdates.isAdmin;
     }
+    if (Object.prototype.hasOwnProperty.call(cleanUpdates, "isBlocked")) {
+      delete cleanUpdates.isBlocked;
+    }
   }
 
   const updated = await updateUserInDb(userId, cleanUpdates); // бросит 404 при отсутствии
-  return _.pick(updated, ["_id", "email", "name", "isAdmin", "isBusiness", "createdAt", "address", "image", "phone"]);
+  return _.pick(updated, ["_id", "email", "name", "isAdmin", "isBusiness", "isBlocked", "createdAt", "address", "image", "phone"]);
+};
+
+// Block user (admin only)
+export const blockUser = async (userId) => {
+  const updated = await updateUserInDb(userId, { isBlocked: true });
+  return _.pick(updated, ["_id", "email", "name", "isAdmin", "isBusiness", "isBlocked", "createdAt"]);
+};
+
+// Unblock user (admin only)
+export const unblockUser = async (userId) => {
+  const updated = await updateUserInDb(userId, { isBlocked: false });
+  return _.pick(updated, ["_id", "email", "name", "isAdmin", "isBusiness", "isBlocked", "createdAt"]);
 };

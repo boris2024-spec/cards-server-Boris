@@ -3,6 +3,7 @@ import {
   createCard,
   deleteCardInDb,
   getAllCardsFromDb,
+  getAllCardsFromDbAdmin,
   getCardByIdFromDb,
   updateCardInDb,
 } from "./cardsDataService.js";
@@ -11,8 +12,8 @@ import { generateBizNumber } from "./bizNumberService.js";
 import Card from "../models/Card.js";
 
 //get all
-export const getAllCards = async () => {
-  const cards = await getAllCardsFromDb();
+export const getAllCards = async (isAdmin = false) => {
+  const cards = isAdmin ? await getAllCardsFromDbAdmin() : await getAllCardsFromDb();
   return cards;
 };
 
@@ -23,8 +24,15 @@ export const getMyCards = async (userId) => {
 };
 
 //get one by id
-export const getCardById = async (id) => {
+export const getCardById = async (id, isAdmin = false) => {
   const card = await getCardByIdFromDb(id);
+  if (!card) return null;
+
+  // If card is blocked and user is not admin, return null
+  if (card.isBlocked && !isAdmin) {
+    return null;
+  }
+
   return card;
 };
 
@@ -181,6 +189,36 @@ export const changeBizNumber = async (cardId) => {
     return card;
   } catch (error) {
     console.log(error);
+    return null;
+  }
+};
+
+//blockCard
+export const blockCard = async (cardId) => {
+  try {
+    const updated = await Card.findByIdAndUpdate(
+      cardId,
+      { isBlocked: true },
+      { new: true }
+    );
+    return updated;
+  } catch (error) {
+    console.log("blockCard error:", error);
+    return null;
+  }
+};
+
+//unblockCard
+export const unblockCard = async (cardId) => {
+  try {
+    const updated = await Card.findByIdAndUpdate(
+      cardId,
+      { isBlocked: false },
+      { new: true }
+    );
+    return updated;
+  } catch (error) {
+    console.log("unblockCard error:", error);
     return null;
   }
 };
