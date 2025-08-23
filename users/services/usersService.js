@@ -29,7 +29,9 @@ export const login = async (email, password) => {
   if (!comparePassword(password, user?.password)) {
     throw new AppError("Invalid email or password", 401);
   }
-  return generateToken(user);
+  const token = generateToken(user);
+  console.log("my token"); // Выводим только "my token" в консоль для безопасности
+  return token;
 };
 
 export const deleteUser = async (userId) => {
