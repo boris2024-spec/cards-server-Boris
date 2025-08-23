@@ -98,6 +98,28 @@ router.patch("/:id/like", auth, checkBlocked, async (req, res) => {
   res.send(cardToDTO(result.card, req.user));
 });
 
+// Block card (admin only)
+router.patch("/:id/block", auth, requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const result = await blockCard(id);
+  if (!result) return res.status(404).send("Card not found");
+  res.send(cardToDTO(result, req.user));
+});
+
+// Unblock card (admin only)
+router.patch("/:id/unblock", auth, requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const result = await unblockCard(id);
+  if (!result) return res.status(404).send("Card not found");
+  res.send(cardToDTO(result, req.user));
+});
+
+router.patch("/:id/bizNumber", auth, checkBlocked, loadCard, requireOwnerOrAdmin, async (req, res) => {
+  const updated = await changeBizNumber(req.params.id);
+  if (!updated) return res.status(400).send("could not change bizNumber");
+  res.send(cardToDTO(updated, req.user));
+});
+
 router.patch("/:id", auth, checkBlocked, async (req, res) => {
   // If body is empty, treat as like toggle for compatibility with frontend
   if (!req.body || Object.keys(req.body).length === 0) {
@@ -125,28 +147,6 @@ router.patch("/:id", auth, checkBlocked, async (req, res) => {
     message: "card update failed",
     errors: result.errors || [],
   });
-});
-
-router.patch("/:id/bizNumber", auth, checkBlocked, loadCard, requireOwnerOrAdmin, async (req, res) => {
-  const updated = await changeBizNumber(req.params.id);
-  if (!updated) return res.status(400).send("could not change bizNumber");
-  res.send(cardToDTO(updated, req.user));
-});
-
-// Block card (admin only)
-router.patch("/:id/block", auth, requireAdmin, async (req, res) => {
-  const { id } = req.params;
-  const result = await blockCard(id);
-  if (!result) return res.status(404).send("Card not found");
-  res.send(cardToDTO(result, req.user));
-});
-
-// Unblock card (admin only)
-router.patch("/:id/unblock", auth, requireAdmin, async (req, res) => {
-  const { id } = req.params;
-  const result = await unblockCard(id);
-  if (!result) return res.status(404).send("Card not found");
-  res.send(cardToDTO(result, req.user));
 });
 
 export default router;
