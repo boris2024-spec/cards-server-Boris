@@ -55,6 +55,15 @@ export const createNewCard = async (card, userId) => {
     }
   }
   card.user_id = userId;
+
+  // Устанавливаем дефолтное изображение, если оно не указано
+  if (!card.image || !card.image.url) {
+    card.image = {
+      url: "https://wallpaperbat.com/img/451048-free-wallpaper-free-photography-wallpaper-japanese-folk-culture-2-wallpaper-1366x768.jpg",
+      alt: card.image?.alt || "Default image"
+    };
+  }
+
   const { error, value } = validateCard(card);
   if (error) {
     return {
@@ -108,8 +117,8 @@ export const updateCard = async (id, newCard = {}) => {
       email: newCard.email ?? existing.email,
       web: newCard.web ?? existing.web,
       image: {
-        url: newCard.image?.url ?? existing.image?.url ?? "",
-        alt: newCard.image?.alt ?? existing.image?.alt ?? "",
+        url: newCard.image?.url || existing.image?.url || "https://wallpaperbat.com/img/451048-free-wallpaper-free-photography-wallpaper-japanese-folk-culture-2-wallpaper-1366x768.jpg",
+        alt: newCard.image?.alt || existing.image?.alt || "Default image",
       },
       address: {
         state: newCard.address?.state ?? existing.address?.state ?? "",

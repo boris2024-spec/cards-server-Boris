@@ -17,7 +17,10 @@ const cardSchema = new Schema({
   },
   phone: PHONE,
   email: EMAIL,
-  web: URL,
+  web: {
+    ...URL,
+
+  },
   image: Image,
   address: Address,
   bizNumber: {
