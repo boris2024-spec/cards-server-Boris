@@ -1,131 +1,203 @@
-# Демонстрация блокировки пользователей администратором
-# Все команды выполняются в PowerShell
+# Демонстрация блокировки пользователя после 3 неудачных попыток входа
 
-Write-Host "🚀 Демонстрация функциональности блокировки пользователей" -ForegroundColor Green
-Write-Host ""
+Write-Host "=== Демонстрация системы блокировки пользователей ===" -ForegroundColor Green
 
-# 1. Создание администратора (первый пользователь автоматически становится админом)
-Write-Host "1️⃣ Создание администратора..." -ForegroundColor Yellow
-$adminEmail = "admin_$(Get-Date -Format 'yyyyMMddHHmmss')@example.com"
+# Убедимся, что сервер запущен
+$serverRunning = $false
+try {
+    $response = Invoke-WebRequest -Uri "http://localhost:8181/api/health" -Method GET -TimeoutSec 5
+    if ($response.StatusCode -eq 200) {
+        $serverRunning = $true
+        Write-Host "✓ Сервер запущен" -ForegroundColor Green
+    }
+} catch {
+    Write-Host "✗ Сервер не запущен. Запустите сервер командой: npm start" -ForegroundColor Red
+    exit 1
+}
+
+if (-not $serverRunning) {
+    Write-Host "✗ Сервер недоступен" -ForegroundColor Red
+    exit 1
+}
+
+$testEmail = "demo@blocking.test"
+$correctPassword = "Demo123!"
+$wrongPassword = "WrongPassword"
+
+# Функция для создания тестового пользователя
+function Create-TestUser {
+    $userData = @{
+        name = @{
+            first = "Demo"
+            middle = ""
+            last = "User"
+        }
+        email = $testEmail
+        password = $correctPassword
+        phone = "050-1234567"
+        image = @{
+            url = "https://example.com/demo.jpg"
+            alt = "Demo user"
+        }
+        address = @{
+            state = "Demo State"
+            country = "Demo Country"
+            city = "Demo City"
+            street = "Demo Street"
+            houseNumber = 123
+            zip = 12345
+        }
+    } | ConvertTo-Json -Depth 3
+
+    try {
+        $response = Invoke-WebRequest -Uri "http://localhost:8181/api/users" -Method POST -Body $userData -ContentType "application/json"
+        Write-Host "✓ Тестовый пользователь создан" -ForegroundColor Green
+        return $true
+    } catch {
+        if ($_.Exception.Response.StatusCode -eq 409) {
+            Write-Host "! Пользователь уже существует" -ForegroundColor Yellow
+            return $true
+        }
+        Write-Host "✗ Ошибка создания пользователя: $($_.Exception.Message)" -ForegroundColor Red
+        return $false
+    }
+}
+
+# Функция для попытки входа
+function Try-Login {
+    param($email, $password, $attemptNumber)
+    
+    $loginData = @{
+        email = $email
+        password = $password
+    } | ConvertTo-Json
+
+    try {
+        $response = Invoke-WebRequest -Uri "http://localhost:8181/api/users/login" -Method POST -Body $loginData -ContentType "application/json"
+        Write-Host "✓ Попытка $attemptNumber`: Успешный вход" -ForegroundColor Green
+        return $response
+    } catch {
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        $errorMessage = ""
+        
+        try {
+            $errorResponse = $_.Exception.Response.GetResponseStream()
+            $reader = New-Object System.IO.StreamReader($errorResponse)
+            $errorBody = $reader.ReadToEnd() | ConvertFrom-Json
+            $errorMessage = $errorBody.message
+        } catch {
+            $errorMessage = $_.Exception.Message
+        }
+
+        Write-Host "✗ Попытка $attemptNumber`: $errorMessage (Код: $statusCode)" -ForegroundColor Red
+        return $null
+    }
+}
+
+# Функция для сброса попыток (требует админ токен)
+function Reset-LoginAttempts {
+    param($adminToken, $email)
+    
+    $resetData = @{
+        email = $email
+    } | ConvertTo-Json
+
+    try {
+        $headers = @{ 'x-auth-token' = $adminToken }
+        $response = Invoke-WebRequest -Uri "http://localhost:8181/api/users/reset-login-attempts" -Method PATCH -Body $resetData -ContentType "application/json" -Headers $headers
+        Write-Host "✓ Попытки входа сброшены администратором" -ForegroundColor Green
+        return $true
+    } catch {
+        Write-Host "✗ Ошибка сброса попыток: $($_.Exception.Message)" -ForegroundColor Red
+        return $false
+    }
+}
+
+# Основная демонстрация
+Write-Host "`n--- Шаг 1: Создание тестового пользователя ---" -ForegroundColor Cyan
+if (-not (Create-TestUser)) {
+    exit 1
+}
+
+Write-Host "`n--- Шаг 2: Демонстрация неудачных попыток входа ---" -ForegroundColor Cyan
+Write-Host "Пробуем войти с неправильным паролем 3 раза..."
+
+for ($i = 1; $i -le 3; $i++) {
+    Start-Sleep -Seconds 1
+    Try-Login -email $testEmail -password $wrongPassword -attemptNumber $i
+}
+
+Write-Host "`n--- Шаг 3: Попытка входа после блокировки ---" -ForegroundColor Cyan
+Write-Host "Пробуем войти с правильным паролем (должно быть заблокировано)..."
+Try-Login -email $testEmail -password $correctPassword -attemptNumber 4
+
+Write-Host "`n--- Шаг 4: Демонстрация автоматического сброса через 24 часа ---" -ForegroundColor Cyan
+Write-Host "В реальной системе блокировка снимется автоматически через 24 часа." -ForegroundColor Yellow
+Write-Host "Для демонстрации покажем, как администратор может сбросить блокировку." -ForegroundColor Yellow
+
+# Создаем администратора для демонстрации сброса
+Write-Host "`n--- Создание администратора для сброса блокировки ---" -ForegroundColor Cyan
+
 $adminData = @{
     name = @{
         first = "Admin"
-        last = "User"
+        middle = ""
+        last = "Demo"
     }
-    phone = "050-123 4567"
-    email = $adminEmail
-    password = "AdminPass123!"
-    isBusiness = $false
+    email = "admin@demo.test"
+    password = "Admin123!"
+    phone = "050-7654321"
+    adminCode = $env:ADMIN_REG_CODE
+    image = @{
+        url = "https://example.com/admin.jpg"
+        alt = "Admin demo"
+    }
+    address = @{
+        state = "Admin State"
+        country = "Admin Country"
+        city = "Admin City"
+        street = "Admin Street"
+        houseNumber = 456
+        zip = 54321
+    }
 } | ConvertTo-Json -Depth 3
 
-$adminRegisterResponse = Invoke-RestMethod -Uri "http://localhost:3000/users" -Method Post -Body $adminData -ContentType "application/json"
-Write-Host "   Администратор создан: $($adminRegisterResponse.email)" -ForegroundColor Green
-Write-Host "   isAdmin: $($adminRegisterResponse.isAdmin)" -ForegroundColor Green
-Write-Host ""
+try {
+    $adminResponse = Invoke-WebRequest -Uri "http://localhost:8181/api/users" -Method POST -Body $adminData -ContentType "application/json"
+    Write-Host "✓ Администратор создан" -ForegroundColor Green
+} catch {
+    if ($_.Exception.Response.StatusCode -eq 409) {
+        Write-Host "! Администратор уже существует" -ForegroundColor Yellow
+    }
+}
 
-# 2. Авторизация администратора
-Write-Host "2️⃣ Авторизация администратора..." -ForegroundColor Yellow
+# Вход администратора
 $adminLoginData = @{
-    email = $adminEmail
-    password = "AdminPass123!"
-} | ConvertTo-Json
-
-$adminToken = Invoke-RestMethod -Uri "http://localhost:3000/users/login" -Method Post -Body $adminLoginData -ContentType "application/json"
-Write-Host "   Токен получен: ✅" -ForegroundColor Green
-Write-Host ""
-
-# 3. Создание обычного пользователя
-Write-Host "3️⃣ Создание обычного пользователя..." -ForegroundColor Yellow
-$userEmail = "user_$(Get-Date -Format 'yyyyMMddHHmmss')@example.com"
-$userData = @{
-    name = @{
-        first = "Regular"
-        last = "User"
-    }
-    phone = "050-987 6543"
-    email = $userEmail
-    password = "UserPass123!"
-    isBusiness = $true
-} | ConvertTo-Json -Depth 3
-
-$userRegisterResponse = Invoke-RestMethod -Uri "http://localhost:3000/users" -Method Post -Body $userData -ContentType "application/json"
-$userId = $userRegisterResponse._id
-Write-Host "   Пользователь создан: $($userRegisterResponse.email)" -ForegroundColor Green
-Write-Host "   ID: $userId" -ForegroundColor Green
-Write-Host "   isAdmin: $($userRegisterResponse.isAdmin)" -ForegroundColor Green
-Write-Host "   isBlocked: $($userRegisterResponse.isBlocked)" -ForegroundColor Green
-Write-Host ""
-
-# 4. Проверка авторизации обычного пользователя
-Write-Host "4️⃣ Проверка авторизации обычного пользователя..." -ForegroundColor Yellow
-$userLoginData = @{
-    email = $userEmail
-    password = "UserPass123!"
+    email = "admin@demo.test"
+    password = "Admin123!"
 } | ConvertTo-Json
 
 try {
-    $userToken = Invoke-RestMethod -Uri "http://localhost:3000/users/login" -Method Post -Body $userLoginData -ContentType "application/json"
-    Write-Host "   Авторизация успешна: ✅" -ForegroundColor Green
+    $adminLoginResponse = Invoke-WebRequest -Uri "http://localhost:8181/api/users/login" -Method POST -Body $adminLoginData -ContentType "application/json"
+    $adminToken = ($adminLoginResponse.Content | ConvertFrom-Json).token
+    Write-Host "✓ Администратор вошел в систему" -ForegroundColor Green
+
+    # Сброс попыток входа
+    Write-Host "`n--- Сброс попыток входа администратором ---" -ForegroundColor Cyan
+    Reset-LoginAttempts -adminToken $adminToken -email $testEmail
+
+    # Проверка, что пользователь может войти
+    Write-Host "`n--- Проверка входа после сброса ---" -ForegroundColor Cyan
+    Try-Login -email $testEmail -password $correctPassword -attemptNumber "После сброса"
+
 } catch {
-    Write-Host "   Ошибка авторизации: ❌" -ForegroundColor Red
-}
-Write-Host ""
-
-# 5. Админ блокирует пользователя
-Write-Host "5️⃣ Блокировка пользователя администратором..." -ForegroundColor Yellow
-$headers = @{
-    "x-auth-token" = $adminToken
-    "Content-Type" = "application/json"
+    Write-Host "✗ Ошибка входа администратора: $($_.Exception.Message)" -ForegroundColor Red
 }
 
-$blockResponse = Invoke-RestMethod -Uri "http://localhost:3000/users/$userId/block" -Method Patch -Headers $headers
-Write-Host "   Пользователь заблокирован: ✅" -ForegroundColor Green
-Write-Host "   isBlocked: $($blockResponse.isBlocked)" -ForegroundColor Green
-Write-Host ""
-
-# 6. Проверка что заблокированный пользователь не может логиниться
-Write-Host "6️⃣ Попытка авторизации заблокированного пользователя..." -ForegroundColor Yellow
-try {
-    $blockedUserToken = Invoke-RestMethod -Uri "http://localhost:3000/users/login" -Method Post -Body $userLoginData -ContentType "application/json"
-    Write-Host "   Ошибка: пользователь смог авториизоваться! ❌" -ForegroundColor Red
-} catch {
-    Write-Host "   Доступ запрещен: ✅" -ForegroundColor Green
-    Write-Host "   Ошибка: $($_.Exception.Message)" -ForegroundColor Cyan
-}
-Write-Host ""
-
-# 7. Админ разблокирует пользователя
-Write-Host "7️⃣ Разблокировка пользователя администратором..." -ForegroundColor Yellow
-$unblockResponse = Invoke-RestMethod -Uri "http://localhost:3000/users/$userId/unblock" -Method Patch -Headers $headers
-Write-Host "   Пользователь разблокирован: ✅" -ForegroundColor Green
-Write-Host "   isBlocked: $($unblockResponse.isBlocked)" -ForegroundColor Green
-Write-Host ""
-
-# 8. Проверка что разблокированный пользователь снова может логиниться
-Write-Host "8️⃣ Проверка авторизации разблокированного пользователя..." -ForegroundColor Yellow
-try {
-    $unblockedUserToken = Invoke-RestMethod -Uri "http://localhost:3000/users/login" -Method Post -Body $userLoginData -ContentType "application/json"
-    Write-Host "   Авторизация восстановлена: ✅" -ForegroundColor Green
-} catch {
-    Write-Host "   Ошибка авторизации: ❌" -ForegroundColor Red
-    Write-Host "   Ошибка: $($_.Exception.Message)" -ForegroundColor Red
-}
-Write-Host ""
-
-# 9. Попытка обычного пользователя заблокировать другого (должна провалиться)
-Write-Host "9️⃣ Попытка обычного пользователя заблокировать администратора..." -ForegroundColor Yellow
-$userHeaders = @{
-    "x-auth-token" = $unblockedUserToken
-    "Content-Type" = "application/json"
-}
-
-try {
-    $unauthorizedBlock = Invoke-RestMethod -Uri "http://localhost:3000/users/$($adminRegisterResponse._id)/block" -Method Patch -Headers $userHeaders
-    Write-Host "   Ошибка: обычный пользователь смог заблокировать админа! ❌" -ForegroundColor Red
-} catch {
-    Write-Host "   Доступ корректно запрещен: ✅" -ForegroundColor Green
-    Write-Host "   Ошибка: $($_.Exception.Message)" -ForegroundColor Cyan
-}
-Write-Host ""
-
-Write-Host "✅ Все тесты прошли успешно! Функциональность блокировки работает корректно." -ForegroundColor Green
+Write-Host "`n=== Демонстрация завершена ===" -ForegroundColor Green
+Write-Host "Система блокировки работает следующим образом:" -ForegroundColor White
+Write-Host "• После 3 неудачных попыток входа пользователь блокируется на 24 часа" -ForegroundColor White
+Write-Host "• Блокировка применяется по email адресу" -ForegroundColor White
+Write-Host "• При успешном входе счетчик попыток сбрасывается" -ForegroundColor White
+Write-Host "• Администратор может сбросить блокировку принудительно" -ForegroundColor White
+Write-Host "• Блокировка автоматически снимается через 24 часа" -ForegroundColor White

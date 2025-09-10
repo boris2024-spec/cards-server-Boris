@@ -1,5 +1,5 @@
 import express from "express";
-import { createNewUser, login, deleteUser, getAllUsers, updateUser, getUserById, blockUser, unblockUser } from "../services/usersService.js";
+import { createNewUser, login, deleteUser, getAllUsers, updateUser, getUserById, blockUser, unblockUser, resetUserLoginAttempts } from "../services/usersService.js";
 import { auth, requireAdmin, checkBlocked } from "../../auth/services/authService.js";
 import { asyncHandler } from "../../middlewares/errorHandler.js";
 import { AppError } from "../../middlewares/errorHandler.js";
@@ -65,6 +65,16 @@ router.patch("/:id/block", auth, requireAdmin, asyncHandler(async (req, res) => 
 router.patch("/:id/unblock", auth, requireAdmin, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const result = await unblockUser(id);
+  res.send(result);
+}));
+
+// Reset login attempts (admin only)
+router.patch("/reset-login-attempts", auth, requireAdmin, asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    throw new AppError("Email is required", 400);
+  }
+  const result = await resetUserLoginAttempts(email);
   res.send(result);
 }));
 

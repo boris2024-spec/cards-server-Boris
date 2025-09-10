@@ -4,6 +4,8 @@ import logger from "./middlewares/logger.js";
 import router from "./router/router.js";
 import { notFoundHandler, errorHandler, AppError } from "./middlewares/errorHandler.js";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
 
 // Дополнительная конфигурация CORS: можно указать через переменную окружения CORS_ORIGINS="http://localhost:5173,http://127.0.0.1:5500"
 const extraOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(/[,;\s]+/).filter(Boolean) : [];
