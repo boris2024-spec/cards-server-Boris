@@ -14,6 +14,7 @@ export const notFoundHandler = (req, res, next) => {
 };
 
 import chalk from "chalk";
+import { logger } from "../logger.js";
 
 export const errorHandler = (err, req, res, next) => {
     const status = err.statusCode || 500;
@@ -26,10 +27,18 @@ export const errorHandler = (err, req, res, next) => {
     };
     if (err.details) payload.error.details = err.details;
     if (!isProd && err.stack) payload.error.stack = err.stack;
-    // Colored logging: errors always red
+
+    // Формируем сообщение для логирования
+    const errorMessage = `STATUS: ${status} | METHOD: ${req.method} | URL: ${req.originalUrl} | IP: ${req.ip} | ERROR: ${err.message}`;
+
+    // Логируем в файл
+    logger.error(errorMessage);
+
+    // Colored logging в консоль: errors always red
     const line = `[ERROR] ${req.method} ${req.originalUrl} -> ${status}: ${err.message}`;
     // Red background with white (bold) text for stronger visibility
     console.error(chalk.bgRed.white.bold(line));
+
     res.status(status).json(payload);
 };
 

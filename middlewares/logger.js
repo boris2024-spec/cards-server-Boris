@@ -5,6 +5,7 @@
 // }
 
 import chalk from "chalk";
+import { logger as fileLogger } from "../logger.js";
 
 // Custom logger middleware matching required format:
 // [YYYY/MM/DD HH:MM:SS] METHOD URL STATUS – RESPONSE_TIME ms
@@ -53,7 +54,19 @@ export default function logger(req, res, next) {
       if (msg) line += ` -> ${msg}`;
     }
 
+    // Логируем в консоль с цветами
     console.log(line);
+
+    // Логируем в файл только ошибки (статус 400 и выше)
+    if (status >= 400) {
+      const logMessage = `STATUS: ${status} | METHOD: ${req.method} | URL: ${req.originalUrl} | RESPONSE_TIME: ${diffMs.toFixed(1)}ms | USER: ${userInfo}`;
+      const msg = res.locals.errorMessage || res.statusMessage;
+      if (msg) {
+        fileLogger.error(`${logMessage} | MESSAGE: ${msg}`);
+      } else {
+        fileLogger.error(logMessage);
+      }
+    }
   });
 
   next();
