@@ -28,13 +28,13 @@ export const errorHandler = (err, req, res, next) => {
     if (err.details) payload.error.details = err.details;
     if (!isProd && err.stack) payload.error.stack = err.stack;
 
-    // Формируем сообщение для логирования
+    // Compose message for logging
     const errorMessage = `STATUS: ${status} | METHOD: ${req.method} | URL: ${req.originalUrl} | IP: ${req.ip} | ERROR: ${err.message}`;
 
-    // Логируем в файл
+    // Log to file
     logger.error(errorMessage);
 
-    // Colored logging в консоль: errors always red
+    // Colored logging to console: errors always red
     const line = `[ERROR] ${req.method} ${req.originalUrl} -> ${status}: ${err.message}`;
     // Red background with white (bold) text for stronger visibility
     console.error(chalk.bgRed.white.bold(line));

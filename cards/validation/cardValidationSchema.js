@@ -1,9 +1,9 @@
 import Joi from "joi";
 
-// Унифицированный регэксп URL
+// Unified URL regexp
 const urlRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][\w-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][\w-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
 
-// Пользовательский валидатор для bizNumber (7 цифр) с пустым значением до генерации
+// Custom validator for bizNumber (7 digits), can be empty before assignment
 const bizNumberRule = Joi.alternatives().try(
   Joi.number()
     .integer()
@@ -14,7 +14,7 @@ const bizNumberRule = Joi.alternatives().try(
       "number.min": "bizNumber must be 7 digits",
       "number.max": "bizNumber must be 7 digits",
     }),
-  Joi.string().allow("") // промежуточно может быть пустой перед присвоением
+  Joi.string().allow("") // can be empty before assignment
 );
 
 const requiredMsg = (field) => ({ "any.required": `${field} is required` });

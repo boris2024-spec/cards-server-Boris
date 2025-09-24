@@ -6,78 +6,78 @@
 [![Jest](https://img.shields.io/badge/Jest-29.7-red.svg)](https://jestjs.io)
 [![License](https://img.shields.io/badge/License-ISC-yellow.svg)](LICENSE)
 
-Современный Node.js / Express сервер для управления бизнес-карточками с системой пользователей, JWT аутентификацией, ролевой моделью и полной совместимостью с React фронтендом.
+Modern Node.js / Express server for managing business cards with user system, JWT authentication, role model, and full compatibility with React frontend.
 
-## 🚀 Возможности
+## 🚀 Features
 
-### 👥 Управление пользователями
-- **Регистрация и аутентификация** с JWT токенами
-- **Ролевая система**: Regular, Business, Admin пользователи
-- **Автоматическое назначение первого пользователя** как администратора
-- **Система блокировки** после неудачных попыток входа (3 попытки → 24 часа блокировки)
-- **Административные функции** для управления пользователями
+### 👥 User Management
+- **Registration and authentication** with JWT tokens
+- **Role system**: Regular, Business, Admin users
+- **Automatic assignment of the first user** as administrator
+- **Blocking system** after failed login attempts (3 attempts → 24 hours block)
+- **Administrative functions** for user management
 
-### 🎯 Бизнес-карточки
-- **CRUD операции** для бизнес-карточек
-- **Уникальные 7-значные номера** (bizNumber) с автогенерацией
-- **Система лайков** с атомарным toggle механизмом
-- **Блокировка карточек** администраторами
-- **Поиск и фильтрация** карточек
+### 🎯 Business Cards
+- **CRUD operations** for business cards
+- **Unique 7-digit numbers** (bizNumber) with autogeneration
+- **Like system** with atomic toggle mechanism
+- **Card blocking** by administrators
+- **Search and filter** cards
 
-### 🔒 Безопасность
-- **JWT токены** с настраиваемым временем жизни
-- **CORS защита** с гибкой настройкой доменов
-- **Валидация данных** с помощью Joi
-- **Централизованная обработка ошибок**
-- **Логирование** всех запросов и ошибок
+### 🔒 Security
+- **JWT tokens** with configurable expiration time
+- **CORS protection** with flexible domain settings
+- **Data validation** using Joi
+- **Centralized error handling**
+- **Logging** of all requests and errors
 
-### 🏗 Архитектура
-- **Модульная структура** по доменам (users, cards, auth)
-- **Middleware система** для аутентификации и авторизации
-- **Единый формат API ответов**
-- **Comprehensive тестирование** (unit + integration)
-- **Health-check эндпоинт** для мониторинга
+### 🏗 Architecture
+- **Modular structure** by domains (users, cards, auth)
+- **Middleware system** for authentication and authorization
+- **Unified API response format**
+- **Comprehensive testing** (unit + integration)
+- **Health-check endpoint** for monitoring
 
-## 📋 Содержание
+## 📋 Table of Contents
 
-1. [Быстрый старт](#быстрый-старт)
-2. [Установка и настройка](#установка-и-настройка)
-3. [Переменные окружения](#переменные-окружения)
-4. [API документация](#api-документация)
-5. [Архитектура проекта](#архитектура-проекта)
-6. [Тестирование](#тестирование)
-7. [Совместимость с фронтендом](#совместимость-с-фронтендом)
-8. [Развертывание](#развертывание)
+1. [Quick Start](#quick-start)
+2. [Installation & Setup](#installation--setup)
+3. [Environment Variables](#environment-variables)
+4. [API Documentation](#api-documentation)
+5. [Project Architecture](#project-architecture)
+6. [Testing](#testing)
+7. [Frontend Compatibility](#frontend-compatibility)
+8. [Deployment](#deployment)
 
-## 🏃‍♂️ Быстрый старт
+## 🏃‍♂️ Quick Start
 
 ```bash
-# Клонирование репозитория
+# Clone repository
 git clone https://github.com/boris2024-spec/cards-server-Boris.git
 cd cards-server-Boris
 
-# Установка зависимостей
+# Install dependencies
 npm install
 
-# Создание .env файла
+# Create .env file
 cp .env.example .env
 
-# Запуск MongoDB (если локально)
+# Start MongoDB (if local)
 mongod
 
-# Запуск в режиме разработки
+# Start in development mode
 npm run dev
 
-# Проверка работоспособности
+# Check health
 curl http://localhost:3000/health
 ```
 
-## ⚙️ Установка и настройка
+## ⚙️ Installation & Setup
 
-### Системные требования
-- **Node.js**: 18.0.0 или выше
-- **MongoDB**: 5.0 или выше
-- **npm**: 8.0 или выше
+### System Requirements
+- **Node.js**: 18.0.0 or higher
+- **MongoDB**: 5.0 or higher
+- **npm**: 8.0 or higher
 
 ### Пошаговая установка
 

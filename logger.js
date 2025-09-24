@@ -1,13 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 
-// Создаем папку logs если её нет
+// Create logs folder if it doesn't exist
 const logsDir = path.join(process.cwd(), 'logs');
 if (!fs.existsSync(logsDir)) {
     fs.mkdirSync(logsDir, { recursive: true });
 }
 
-// Функция для форматирования даты и времени
+// Function to format date and time
 const formatDateTime = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -20,7 +20,7 @@ const formatDateTime = () => {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-// Функция для получения имени файла по дате
+// Function to get log file name by date
 const getLogFileName = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -30,12 +30,12 @@ const getLogFileName = () => {
     return `app-${year}-${month}-${day}.log`;
 };
 
-// Функция для записи в файл
+// Function to write to file
 const writeToFile = (level, message) => {
     const timestamp = formatDateTime();
     const logMessage = `[${timestamp}] [${level}] ${message}\n`;
 
-    // Создаем имя файла с текущей датой
+    // Create file name with current date
     const logFileName = getLogFileName();
     const logFile = path.join(logsDir, logFileName);
 
@@ -46,7 +46,7 @@ const writeToFile = (level, message) => {
     }
 };
 
-// Экспортируем логгер
+// Export logger
 export const logger = {
     info: (message) => {
         console.log(`[INFO] ${message}`);

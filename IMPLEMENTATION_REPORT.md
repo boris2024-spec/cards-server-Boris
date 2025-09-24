@@ -1,103 +1,103 @@
-# Cards Server - Отчет о реализации
+# Cards Server - Implementation Report
 
-## 📋 Общая информация
+## 📋 General Information
 
-**Проект**: Cards Server API
-**Версия**: 1.0.0
-**Дата создания**: Сентябрь 2025
-**Автор**: Boris
-**Технологический стек**: Node.js, Express, MongoDB, Jest
+**Project**: Cards Server API
+**Version**: 1.0.0
+**Created**: September 2025
+**Author**: Boris
+**Tech Stack**: Node.js, Express, MongoDB, Jest
 
-## 🎯 Цели проекта
+## 🎯 Project Goals
 
-### Основные задачи
-1. **Создание полнофункционального API** для управления бизнес-карточками
-2. **Реализация системы аутентификации** с JWT токенами
-3. **Разработка ролевой модели** (Regular, Business, Admin)
-4. **Обеспечение безопасности** приложения
-5. **Создание comprehensive тестового покрытия**
-6. **Обеспечение совместимости** с React фронтендом
+### Main Tasks
+1. **Create a full-featured API** for managing business cards
+2. **Implement authentication system** with JWT tokens
+3. **Develop role model** (Regular, Business, Admin)
+4. **Ensure application security**
+5. **Create comprehensive test coverage**
+6. **Ensure compatibility** with React frontend
 
-### Дополнительные цели
-- Модульная архитектура для легкого расширения
-- Централизованная обработка ошибок
-- Система блокировки при неудачных попытках входа
-- Health monitoring и логирование
-- Подробная документация
+### Additional Goals
+- Modular architecture for easy extension
+- Centralized error handling
+- Blocking system for failed login attempts
+- Health monitoring and logging
+- Detailed documentation
 
-## 🏗 Архитектурные решения
+## 🏗 Architectural Solutions
 
-### 1. Модульная структура
+### 1. Modular Structure
 
-**Принятое решение**: Разделение проекта на домены (users, cards, auth)
+**Decision**: Split the project into domains (users, cards, auth)
 
-**Обоснование**:
-- Легкость поддержки и расширения
-- Изоляция логики разных модулей
-- Возможность независимой разработки
+**Rationale**:
+- Easy maintenance and extension
+- Isolation of logic between modules
+- Possibility of independent development
 
-**Структура**:
+**Structure**:
 ```
-auth/         # JWT и аутентификация
-cards/        # Бизнес-карточки
-users/        # Пользователи и роли
-middlewares/  # Общие middleware
-helpers/      # Утилиты и подмодели
+auth/         # JWT and authentication
+cards/        # Business cards
+users/        # Users and roles
+middlewares/  # Common middleware
+helpers/      # Utilities and submodels
 ```
 
 ### 2. Layered Architecture
 
-**Слои**:
-1. **Controller Layer** - HTTP роуты и валидация запросов
-2. **Service Layer** - Бизнес-логика
-3. **Data Service Layer** - Работа с базой данных
-4. **Model Layer** - Mongoose схемы
+**Layers**:
+1. **Controller Layer** - HTTP routes and request validation
+2. **Service Layer** - Business logic
+3. **Data Service Layer** - Database operations
+4. **Model Layer** - Mongoose schemas
 
-**Преимущества**:
-- Четкое разделение ответственности
-- Легкость тестирования
-- Переиспользуемость кода
+**Advantages**:
+- Clear separation of concerns
+- Easy testing
+- Code reusability
 
-### 3. Middleware система
+### 3. Middleware System
 
-**Реализованные middleware**:
-- `auth` - Проверка JWT токенов
-- `requireAdmin` - Проверка админских прав
-- `checkBlocked` - Проверка блокировки пользователя
-- `logger` - Логирование запросов
-- `errorHandler` - Централизованная обработка ошибок
+**Implemented middleware**:
+- `auth` - JWT token verification
+- `requireAdmin` - Admin rights check
+- `checkBlocked` - User block check
+- `logger` - Request logging
+- `errorHandler` - Centralized error handling
 
-## 🔐 Система безопасности
+## 🔐 Security System
 
-### 1. Аутентификация
+### 1. Authentication
 
-**JWT токены**:
-- Алгоритм: HS256
+**JWT tokens**:
+- Algorithm: HS256
 - Payload: `{ _id, isBusiness, isAdmin }`
 - Configurable expiration time
-- Поддержка двух форматов заголовков
+- Support for two header formats
 
 ```javascript
-// Поддерживаемые форматы
-Authorization: Bearer <token>  // Рекомендуемый
-x-auth-token: <token>         // Обратная совместимость
+// Supported formats
+Authorization: Bearer <token>  // Recommended
+x-auth-token: <token>         // Backward compatibility
 ```
 
-**Функции**:
-- `generateToken()` - Создание JWT
-- `verifyToken()` - Валидация JWT
-- `extractToken()` - Извлечение из заголовков
+**Functions**:
+- `generateToken()` - Create JWT
+- `verifyToken()` - Validate JWT
+- `extractToken()` - Extract from headers
 
-### 2. Система блокировки входа
+### 2. Login Blocking System
 
-**Параметры**:
-- Максимум попыток: 3
-- Время блокировки: 24 часа
-- Автоматический сброс через TTL
+**Parameters**:
+- Max attempts: 3
+- Block duration: 24 hours
+- Automatic reset via TTL
 
-**Реализация**:
+**Implementation**:
 ```javascript
-// Модель LoginAttempt
+// LoginAttempt model
 {
   email: String,
   attempts: Number,
@@ -106,25 +106,25 @@ x-auth-token: <token>         // Обратная совместимость
 }
 ```
 
-**Функции**:
-- `checkLoginAttempts()` - Проверка блокировки
-- `handleFailedLogin()` - Обработка неудачного входа
-- `handleSuccessfulLogin()` - Сброс при успехе
-- `resetLoginAttempts()` - Административный сброс
+**Functions**:
+- `checkLoginAttempts()` - Check block
+- `handleFailedLogin()` - Handle failed login
+- `handleSuccessfulLogin()` - Reset on success
+- `resetLoginAttempts()` - Admin reset
 
-### 3. Валидация данных
+### 3. Data Validation
 
-**Двойная валидация**:
-1. **Joi схемы** - На уровне API
-2. **Mongoose валидаторы** - На уровне БД
+**Double validation**:
+1. **Joi schemas** - API level
+2. **Mongoose validators** - DB level
 
 **Card validation**:
 ```javascript
-// Обязательные поля
+// Required fields
 title, subtitle, description, phone, email, address
 
-// Специальные валидаторы
-bizNumber: 7-значное число
+// Special validators
+bizNumber: 7-digit number
 phone: Israeli phone format
 email: RFC compliant
 web: URL format
@@ -132,73 +132,73 @@ web: URL format
 
 **User validation**:
 ```javascript
-// Обязательные поля
+// Required fields
 email, password, name.first, name.last
 
-// Специальные правила
-password: мин 8 символов, сложность
-email: уникальность
-phone: формат
+// Special rules
+password: min 8 chars, complexity
+email: uniqueness
+phone: format
 ```
 
-## 🎯 Бизнес-логика
+## 🎯 Business Logic
 
-### 1. Пользователи
+### 1. Users
 
-**Роли**:
-- **Regular User**: Просмотр карточек, лайки
-- **Business User**: + Создание своих карточек
-- **Admin**: + Управление всеми данными
+**Roles**:
+- **Regular User**: View cards, likes
+- **Business User**: + Create own cards
+- **Admin**: + Manage all data
 
-**Автоматическое назначение админа**:
+**Automatic admin assignment**:
 ```javascript
 const usersCount = await countUsersInDb();
 const isFirstUser = usersCount === 0;
 const willBeAdmin = isFirstUser || (adminCode === process.env.ADMIN_REG_CODE);
 ```
 
-**Функции**:
-- `createNewUser()` - Регистрация с проверкой админ кода
-- `login()` - Вход с проверкой блокировки
-- `blockUser()` / `unblockUser()` - Админские функции
+**Functions**:
+- `createNewUser()` - Registration with admin code check
+- `login()` - Login with block check
+- `blockUser()` / `unblockUser()` - Admin functions
 
-### 2. Карточки
+### 2. Cards
 
-**Уникальные бизнес-номера**:
+**Unique business numbers**:
 ```javascript
-// Генерация 7-значного номера
+// Generate 7-digit number
 const candidate = Math.floor(1000000 + Math.random() * 9000000);
-// Проверка уникальности с повторными попытками
+// Uniqueness check with retries
 ```
 
-**Система лайков**:
+**Like system**:
 ```javascript
-// Атомарный toggle
+// Atomic toggle
 const update = card.likes.includes(userId)
-  ? { $pull: { likes: userId } }      // Убрать лайк
-  : { $addToSet: { likes: userId } }; // Добавить лайк
+  ? { $pull: { likes: userId } }      // Remove like
+  : { $addToSet: { likes: userId } }; // Add like
 ```
 
-**Права доступа**:
-- Создание: Business users
-- Редактирование: Владелец или Admin
-- Удаление: Владелец или Admin
-- Блокировка: Только Admin
+**Access rights**:
+- Create: Business users
+- Edit: Owner or Admin
+- Delete: Owner or Admin
+- Block: Admin only
 
-### 3. Middleware для прав доступа
+### 3. Access Rights Middleware
 
 **cardOwnerOrAdmin**:
 ```javascript
-// Проверка что пользователь - владелец карточки или админ
+// Check that user is card owner or admin
 const card = await getCardByIdFromDb(req.params.id);
 if (!req.user.isAdmin && card.user_id !== req.user._id) {
   return res.status(403).send("Access denied");
 }
 ```
 
-## 📊 База данных
+## 📊 Database
 
-### 1. MongoDB схемы
+### 1. MongoDB Schemas
 
 **User Schema**:
 ```javascript
@@ -232,81 +232,81 @@ if (!req.user.isAdmin && card.user_id !== req.user._id) {
 }
 ```
 
-### 2. Индексы
+### 2. Indexes
 
-**Производительность**:
-- `email` - уникальный индекс для Users
-- `bizNumber` - уникальный индекс для Cards
-- `user_id` - индекс для быстрого поиска карточек пользователя
+**Performance**:
+- `email` - unique index for Users
+- `bizNumber` - unique index for Cards
+- `user_id` - index for fast user card search
 
-**TTL индекс**:
+**TTL index**:
 ```javascript
-// Автоматическое удаление истекших блокировок
+// Automatic deletion of expired blocks
 LoginAttemptSchema.index({ blockedUntil: 1 }, { expireAfterSeconds: 0 });
 ```
 
-## 🧪 Тестирование
+## 🧪 Testing
 
-### 1. Тестовое покрытие
+### 1. Test Coverage
 
-**Типы тестов**:
-- **Unit тесты**: 40% - Отдельные функции и модули
-- **Integration тесты**: 50% - Полные user flows
-- **API тесты**: 10% - Health checks и ping
+**Test types**:
+- **Unit tests**: 40% - Individual functions and modules
+- **Integration tests**: 50% - Full user flows
+- **API tests**: 10% - Health checks and ping
 
-**Покрытие по модулям**:
-- Users: 90% - Регистрация, логин, блокировка
-- Cards: 85% - CRUD, валидация, права доступа
+**Coverage by module**:
+- Users: 90% - Registration, login, blocking
+- Cards: 85% - CRUD, validation, access rights
 - Auth: 95% - JWT, middleware
-- Validation: 100% - Joi схемы
+- Validation: 100% - Joi schemas
 
-### 2. Ключевые тесты
+### 2. Key Tests
 
 **integration.flow.test.js**:
 ```javascript
-// Полный пользовательский путь
-1. Регистрация бизнес-пользователя
-2. Вход в систему
-3. Создание карточки
-4. Лайк карточки
-5. Повторный лайк (отмена)
-6. Проверка финального состояния
+// Full user flow
+1. Register business user
+2. Login
+3. Create card
+4. Like card
+5. Like again (unlike)
+6. Check final state
 ```
 
 **user.blocking.test.js**:
 ```javascript
-// Система блокировки
-1. 3 неудачные попытки входа
-2. Проверка блокировки
-3. Проверка сообщений об ошибках
-4. Административный сброс
+// Blocking system
+1. 3 failed login attempts
+2. Check blocking
+3. Check error messages
+4. Admin reset
 ```
 
 **card.validation.messages.test.js**:
 ```javascript
-// Детальная проверка валидации
-- Обязательные поля
-- Форматы данных
-- Сообщения об ошибках
+// Detailed validation check
+- Required fields
+- Data formats
+- Error messages
 - Edge cases
 ```
 
-### 3. Демо скрипты
+### 3. Demo Scripts
 
 **demo_user_blocking.ps1** (PowerShell):
 ```powershell
-# Демонстрация системы блокировки
-# 3 неудачные попытки → блокировка
-# Проверка статусов ответов
+# Demo of blocking system
+# 3 failed attempts → block
+# Check response statuses
 ```
 
-## 🔧 Технические решения
+## 🔧 Technical Solutions
 
-### 1. Обработка ошибок
+### 1. Error Handling
 
-**Централизованный обработчик**:
+**Centralized handler**:
 ```javascript
-// AppError класс для кастомных ошибок
+// AppError class for custom errors
 class AppError extends Error {
   constructor(message, statusCode) {
     super(message);
@@ -314,48 +314,48 @@ class AppError extends Error {
   }
 }
 
-// Middleware для обработки
+// Middleware for handling
 export const errorHandler = (err, req, res, next) => {
   // Логирование, форматирование, отправка ответа
 };
 ```
 
-**Типы ошибок**:
-- Валидация: 400
-- Аутентификация: 401
-- Авторизация: 403
-- Не найдено: 404
-- Блокировка: 423
-- Сервер: 500
+**Error types**:
+- Validation: 400
+- Authentication: 401
+- Authorization: 403
+- Not found: 404
+- Blocking: 423
+- Server: 500
 
-### 2. Логирование
+### 2. Logging
 
 **Morgan middleware**:
 ```javascript
-// HTTP запросы
+// HTTP requests
 app.use(morgan('combined'));
 
-// Ротация логов по дням
+// Log rotation by day
 logs/app-2025-09-10.log
 ```
 
-**Кастомное логирование**:
+**Custom logging**:
 ```javascript
-// Важные события
+// Important events
 console.log("User blocked:", email);
 console.log("Card created:", cardId);
 console.log("Admin action:", action);
 ```
 
-### 3. CORS настройки
+### 3. CORS Settings
 
-**Гибкая конфигурация**:
+**Flexible configuration**:
 ```javascript
-// Переменные окружения
+// Environment variables
 const extraOrigins = process.env.CORS_ORIGINS?.split(',') || [];
 const allowedOrigins = [...defaultOrigins, ...extraOrigins];
 
-// Динамическая проверка
+// Dynamic check
 origin: (origin, cb) => {
   if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
   return cb(new Error("CORS: Origin not allowed"));
@@ -364,23 +364,23 @@ origin: (origin, cb) => {
 
 ## 🚀 API Design
 
-### 1. RESTful принципы
+### 1. RESTful Principles
 
-**Ресурсы**:
-- `/users` - Пользователи
-- `/cards` - Карточки
-- `/health` - Мониторинг
+**Resources**:
+- `/users` - Users
+- `/cards` - Cards
+- `/health` - Monitoring
 
-**HTTP методы**:
-- GET - Получение данных
-- POST - Создание
-- PUT - Полное обновление
-- PATCH - Частичное обновление
-- DELETE - Удаление
+**HTTP methods**:
+- GET - Get data
+- POST - Create
+- PUT - Full update
+- PATCH - Partial update
+- DELETE - Delete
 
-### 2. Единый формат ответов
+### 2. Unified Response Format
 
-**Успех**:
+**Success**:
 ```json
 {
   "status": "success",
@@ -388,19 +388,19 @@ origin: (origin, cb) => {
 }
 ```
 
-**Ошибка**:
+**Error**:
 ```json
 {
   "error": {
-    "message": "Описание ошибки",
+    "message": "Error description",
     "details": [
-      { "path": "field", "message": "Детали" }
+      { "path": "field", "message": "Details" }
     ]
   }
 }
 ```
 
-### 3. Специальные эндпоинты
+### 3. Special Endpoints
 
 **Health check**:
 ```javascript
@@ -412,41 +412,41 @@ GET /health
 }
 ```
 
-**Админские операции**:
+**Admin operations**:
 ```javascript
 PATCH /users/:id/block      // Блокировка пользователя
 PATCH /cards/:id/block      // Блокировка карточки
 PATCH /users/reset-login-attempts  // Сброс попыток
 ```
 
-## 📈 Производительность
+## 📈 Performance
 
-### 1. База данных
+### 1. Database
 
-**Оптимизации**:
-- Индексы на часто запрашиваемые поля
-- TTL для автоматической очистки
-- Projection для ограничения возвращаемых полей
+**Optimizations**:
+- Indexes on frequently requested fields
+- TTL for automatic cleanup
+- Projection to limit returned fields
 
 **Queries**:
 ```javascript
-// Исключение заблокированных карточек
+// Exclude blocked cards
 Card.find({ isBlocked: { $ne: true } })
 
-// Лимитирование полей
+// Limit fields
 User.findById(id).select('-password -__v')
 ```
 
-### 2. Кэширование
+### 2. Caching
 
-**Планируемые улучшения**:
-- Redis для сессий
-- Кэширование часто запрашиваемых карточек
-- CDN для статических файлов
+**Planned improvements**:
+- Redis for sessions
+- Caching frequently requested cards
+- CDN for static files
 
-## 🔒 Безопасность в деталях
+## 🔒 Security Details
 
-### 1. Хеширование паролей
+### 1. Password Hashing
 
 ```javascript
 import bcrypt from 'bcryptjs';
@@ -460,7 +460,7 @@ export const comparePassword = (password, hashedPassword) => {
 };
 ```
 
-### 2. Защита от атак
+### 2. Attack Protection
 
 **Implemented**:
 - SQL Injection: Mongoose ODM
@@ -474,123 +474,123 @@ export const comparePassword = (password, hashedPassword) => {
 - CAPTCHA integration
 - 2FA support
 
-## 🌐 Совместимость с фронтендом
+## 🌐 Frontend Compatibility
 
 ### 1. API Contract
 
-**Полная совместимость** с React фронтендом:
-- Идентичные структуры данных
-- Одинаковые правила валидации
-- Совпадающие форматы ответов
+**Full compatibility** with React frontend:
+- Identical data structures
+- Same validation rules
+- Matching response formats
 
-### 2. Проверенные сценарии
+### 2. Verified Scenarios
 
-**Тестирование совместимости**:
-- ✅ Регистрация и логин
-- ✅ CRUD операции с карточками
-- ✅ Система лайков
-- ✅ Административные функции
-- ✅ Обработка ошибок
+**Compatibility testing**:
+- ✅ Registration and login
+- ✅ CRUD operations with cards
+- ✅ Like system
+- ✅ Admin functions
+- ✅ Error handling
 
-## 📋 Проблемы и решения
+## 📋 Issues and Solutions
 
-### 1. Технические вызовы
+### 1. Technical Challenges
 
-**Проблема**: Генерация уникальных bizNumber
-**Решение**: Retry mechanism с ограничением попыток
+**Issue**: Generating unique bizNumber
+**Solution**: Retry mechanism with attempt limit
 
-**Проблема**: Атомарность операций лайков
-**Решение**: MongoDB операторы `$addToSet` и `$pull`
+**Issue**: Atomicity of like operations
+**Solution**: MongoDB operators `$addToSet` and `$pull`
 
-**Проблема**: Блокировка пользователей
-**Решение**: TTL индексы для автоматической очистки
+**Issue**: User blocking
+**Solution**: TTL indexes for automatic cleanup
 
-### 2. Архитектурные решения
+### 2. Architectural Solutions
 
-**Проблема**: Разделение прав доступа
-**Решение**: Middleware система с проверками
+**Issue**: Access rights separation
+**Solution**: Middleware system with checks
 
-**Проблема**: Обработка ошибок
-**Решение**: Централизованный error handler
+**Issue**: Error handling
+**Solution**: Centralized error handler
 
-**Проблема**: Валидация данных
-**Решение**: Двойная валидация (Joi + Mongoose)
+**Issue**: Data validation
+**Solution**: Double validation (Joi + Mongoose)
 
-## 📊 Метрики проекта
+## 📊 Project Metrics
 
-### 1. Статистика кода
+### 1. Code Statistics
 
-**Файлы**: ~50
-**Строки кода**: ~3000
-**Тесты**: 7 файлов
-**Покрытие**: 85%
+**Files**: ~50
+**Lines of code**: ~3000
+**Tests**: 7 files
+**Coverage**: 85%
 
-### 2. API эндпоинты
+### 2. API Endpoints
 
-**Users**: 8 эндпоинтов
-**Cards**: 10 эндпоинтов
-**Health**: 2 эндпоинта
-**Всего**: 20 эндпоинтов
+**Users**: 8 endpoints
+**Cards**: 10 endpoints
+**Health**: 2 endpoints
+**Total**: 20 endpoints
 
-### 3. Время разработки
+### 3. Development Time
 
-**Планирование**: 2 дня
-**Разработка**: 10 дней
-**Тестирование**: 3 дня
-**Документация**: 2 дня
-**Всего**: 17 дней
+**Planning**: 2 days
+**Development**: 10 days
+**Testing**: 3 days
+**Documentation**: 2 days
+**Total**: 17 days
 
-## 🔮 Будущие улучшения
+## 🔮 Future Improvements
 
-### 1. Краткосрочные (1-3 месяца)
+### 1. Short-term (1-3 months)
 - [ ] Refresh токены
 - [ ] Email уведомления
 - [ ] Swagger документация
 - [ ] Rate limiting
 - [ ] Redis интеграция
 
-### 2. Среднесрочные (3-6 месяцев)
+### 2. Medium-term (3-6 months)
 - [ ] Image upload
 - [ ] Search и фильтрация
 - [ ] Pagination
 - [ ] Analytics
 - [ ] Performance monitoring
 
-### 3. Долгосрочные (6+ месяцев)
+### 3. Long-term (6+ months)
 - [ ] Microservices архитектура
 - [ ] GraphQL API
 - [ ] Real-time features
 - [ ] Mobile API optimizations
 - [ ] Multi-tenant support
 
-## 📝 Выводы
+## 📝 Conclusions
 
-### Успехи проекта
+### Project Successes
 
-1. **Архитектура**: Модульная структура обеспечивает легкость расширения
-2. **Безопасность**: Comprehensive система защиты
-3. **Тестирование**: Высокое покрытие с реальными сценариями
-4. **Совместимость**: 100% совместимость с фронтендом
-5. **Документация**: Подробная документация для разработчиков
+1. **Architecture**: Modular structure ensures easy extension
+2. **Security**: Comprehensive protection system
+3. **Testing**: High coverage with real scenarios
+4. **Compatibility**: 100% compatibility with frontend
+5. **Documentation**: Detailed documentation for developers
 
-### Извлеченные уроки
+### Lessons Learned
 
-1. **Планирование**: Важность детального планирования архитектуры
-2. **Тестирование**: Интеграционные тесты критически важны
-3. **Безопасность**: Многоуровневая защита необходима
-4. **Совместимость**: Тесное взаимодействие с фронтенд командой
-5. **Документация**: Хорошая документация экономит время
+1. **Planning**: Importance of detailed architecture planning
+2. **Testing**: Integration tests are critically important
+3. **Security**: Multi-level protection is necessary
+4. **Compatibility**: Close collaboration with frontend team
+5. **Documentation**: Good documentation saves time
 
-### Рекомендации
+### Recommendations
 
-1. **Для команды**: Продолжить development best practices
-2. **Для архитектуры**: Рассмотреть микросервисы при росте
-3. **Для безопасности**: Добавить дополнительные слои защиты
-4. **Для производительности**: Внедрить мониторинг и кэширование
-5. **Для пользователей**: Собирать feedback для улучшений
+1. **For the team**: Continue development best practices
+2. **For architecture**: Consider microservices as the project grows
+3. **For security**: Add additional protection layers
+4. **For performance**: Implement monitoring and caching
+5. **For users**: Collect feedback for improvements
 
 ---
 
-**Проект успешно реализован и готов к продакшн развертыванию** ✅
+**The project is successfully implemented and ready for production deployment** ✅
 
-*Отчет составлен 10 сентября 2025 г.*
+*Report compiled September 10, 2025*

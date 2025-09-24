@@ -1,21 +1,20 @@
-# Что нужно добавить во фронтенд для поддержки блокировки пользователей
+# What to Add to the Frontend to Support User Blocking
 
-## Краткий обзор изменений
+## Brief Overview of Changes
 
-Бэкенд теперь блокирует пользователей на 24 часа после 3 неудачных попыток входа. Фронтенд нужно обновить для обработки новых ответов API.
+Backend now blocks users for 24 hours after 3 failed login attempts. The frontend needs to be updated to handle new API responses.
 
-## 🔴 КРИТИЧНЫЕ изменения
+## 🔴 CRITICAL Changes
 
-### 1. Обработка нового кода ответа 423 (Locked)
+### 1. Handling New 423 (Locked) Response Code
 
 ```javascript
-// В функции входа добавить обработку:
+// Add handling in your login function:
 if (response.status === 423) {
-  // Аккаунт заблокирован
+  // Account is blocked
   setError(data.message);
   setIsBlocked(true);
-  
-  // Показать время разблокировки если есть
+  // Show unblock time if available
   if (data.blockedUntil) {
     const blockedUntil = new Date(data.blockedUntil);
     startCountdown(blockedUntil);
@@ -23,34 +22,32 @@ if (response.status === 423) {
 }
 ```
 
-### 2. Улучшенная обработка 401 (показ оставшихся попыток)
+### 2. Improved 401 Handling (show remaining attempts)
 
 ```javascript
 if (response.status === 401) {
   setError(data.message); // "Invalid email or password. 2 attempts remaining"
-  
-  // Извлечь количество попыток
+  // Extract remaining attempts
   const remainingMatch = data.message.match(/(\d+) attempts remaining/);
   if (remainingMatch) {
     const remaining = parseInt(remainingMatch[1]);
     setRemainingAttempts(remaining);
-    
     if (remaining <= 1) {
-      setWarning('⚠️ Еще одна неудачная попытка заблокирует аккаунт на 24 часа!');
+      setWarning('⚠️ One more failed attempt will block your account for 24 hours!');
     }
   }
 }
 ```
 
-## 🟡 РЕКОМЕНДУЕМЫЕ улучшения UI
+## 🟡 RECOMMENDED UI Improvements
 
-### 1. Индикатор оставшихся попыток
+### 1. Remaining Attempts Indicator
 
 ```jsx
-// Добавить в форму входа
+// Add to login form
 {!isBlocked && remainingAttempts < 3 && (
   <div className="attempts-indicator">
-    Осталось попыток: {remainingAttempts}
+    Attempts left: {remainingAttempts}
     <div className="attempts-dots">
       {[1, 2, 3].map(i => (
         <span 
@@ -63,33 +60,29 @@ if (response.status === 401) {
 )}
 ```
 
-### 2. Таймер обратного отсчета при блокировке
+### 2. Countdown Timer When Blocked
 
 ```javascript
 const startCountdown = (blockedUntil) => {
   const updateCountdown = () => {
     const now = new Date();
     const timeLeft = blockedUntil - now;
-    
     if (timeLeft <= 0) {
       setIsBlocked(false);
       setError('');
       return;
     }
-    
     const hours = Math.floor(timeLeft / (1000 * 60 * 60));
     const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-    
-    setBlockCountdown(`🔒 Разблокировка через: ${hours}ч ${minutes}м`);
+    setBlockCountdown(`🔒 Unblock in: ${hours}h ${minutes}m`);
   };
-  
   updateCountdown();
   const interval = setInterval(updateCountdown, 60000);
   return () => clearInterval(interval);
 };
 ```
 
-### 3. Заблокированная кнопка входа
+### 3. Blocked Login Button
 
 ```jsx
 <button 
@@ -97,18 +90,17 @@ const startCountdown = (blockedUntil) => {
   disabled={isBlocked}
   className={isBlocked ? 'button-disabled' : 'button-primary'}
 >
-  {isBlocked ? '🔒 Аккаунт заблокирован' : 'Войти'}
+  {isBlocked ? '🔒 Account is blocked' : 'Login'}
 </button>
 ```
 
-## 🟢 ОПЦИОНАЛЬНЫЕ возможности для админов
+## 🟢 OPTIONAL Features for Admins
 
-### Форма сброса блокировок (только для админов)
+### Block Reset Form (admin only)
 
 ```jsx
 const AdminResetForm = () => {
   const [email, setEmail] = useState('');
-  
   const handleReset = async () => {
     const token = localStorage.getItem('token');
     const response = await fetch('/users/reset-login-attempts', {
@@ -119,31 +111,29 @@ const AdminResetForm = () => {
       },
       body: JSON.stringify({ email })
     });
-    
     if (response.ok) {
-      alert('Попытки входа сброшены');
+      alert('Login attempts reset');
     }
   };
-  
   return (
     <div>
-      <h3>Сброс блокировки</h3>
+      <h3>Reset Block</h3>
       <input 
         type="email" 
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email пользователя"
+        placeholder="User email"
       />
-      <button onClick={handleReset}>Сбросить</button>
+      <button onClick={handleReset}>Reset</button>
     </div>
   );
 };
 ```
 
-## 📱 Простые CSS стили
+## 📱 Simple CSS Styles
 
 ```css
-/* Индикатор попыток */
+/* Attempts indicator */
 .attempts-indicator {
   text-align: center;
   margin: 10px 0;
@@ -167,14 +157,14 @@ const AdminResetForm = () => {
 .dot.active { background-color: #28a745; }
 .dot.inactive { background-color: #dc3545; }
 
-/* Заблокированная кнопка */
+/* Blocked button */
 .button-disabled {
   background-color: #6c757d;
   cursor: not-allowed;
   opacity: 0.65;
 }
 
-/* Предупреждения */
+/* Warnings */
 .alert-warning {
   background-color: #fff3cd;
   color: #856404;
@@ -184,30 +174,30 @@ const AdminResetForm = () => {
 }
 ```
 
-## 🚀 Минимальная реализация (5 минут)
+## 🚀 Minimal Implementation (5 minutes)
 
-Если времени мало, достаточно добавить только обработку кода 423:
+If you have little time, just add handling for code 423:
 
 ```javascript
-// В существующую функцию входа добавить:
+// Add to your existing login function:
 if (response.status === 423) {
-  alert('Аккаунт заблокирован на 24 часа из-за множественных неудачных попыток входа');
+  alert('Account is blocked for 24 hours due to multiple failed login attempts');
   return;
 }
 ```
 
-## ✅ Что работает без изменений
+## ✅ What Works Without Changes
 
-- Успешный вход (код 200)
-- Обычные ошибки входа (код 401) 
-- Блокировка администратором (код 403)
-- Все остальные API endpoints
+- Successful login (code 200)
+- Regular login errors (code 401)
+- Admin blocking (code 403)
+- All other API endpoints
 
-## 📋 Тестовые сценарии
+## 📋 Test Scenarios
 
-1. **3 неудачных попытки** → должен показать блокировку
-2. **Попытка входа заблокированного** → должен показать время ожидания  
-3. **Успешный вход после 2 неудачных** → должен сбросить счетчик
-4. **Админ сбрасывает блокировку** → пользователь может войти
+1. **3 failed attempts** → should show block
+2. **Blocked user login attempt** → should show wait time
+3. **Successful login after 2 failed** → should reset counter
+4. **Admin resets block** → user can login
 
-Система полностью реализована в бэкенде и готова к использованию! 🎉
+The system is fully implemented in the backend and ready to use! 🎉

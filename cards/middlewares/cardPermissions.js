@@ -1,8 +1,8 @@
 import { getCardByIdFromDb } from "../services/cardsDataService.js";
 
-// Middleware: загружает карточку и проверяет что пользователь админ или владелец
-// Использование: router.use('/:id', auth, loadCard, requireOwnerOrAdmin)
-// Но здесь делаем две отдельные функции для гибкости.
+// Middleware: loads the card and checks if the user is an admin or the owner
+// Usage: router.use('/:id', auth, loadCard, requireOwnerOrAdmin)
+// Here we make two separate functions for flexibility.
 
 export const loadCard = async (req, res, next) => {
     const { id } = req.params;

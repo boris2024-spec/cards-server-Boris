@@ -1,120 +1,120 @@
-# Система блокировки пользователей после неудачных попыток входа
+# User Blocking System After Failed Login Attempts
 
-## Описание
+## Description
 
-Система автоматически блокирует пользователей на 24 часа после 3 неудачных попыток входа с одним email адресом, даже при использовании неправильного пароля.
+The system automatically blocks users for 24 hours after 3 failed login attempts with the same email address, even if the password is incorrect.
 
-## Функциональность
+## Functionality
 
-### Основные возможности:
-- **Отслеживание попыток**: Каждая неудачная попытка входа сохраняется в базе данных
-- **Автоматическая блокировка**: После 3 неудачных попыток пользователь блокируется на 24 часа
-- **Информативные сообщения**: Пользователь получает информацию о количестве оставшихся попыток
-- **Автоматическая разблокировка**: Блокировка снимается через 24 часа
-- **Сброс при успешном входе**: Счетчик попыток сбрасывается при правильном пароле
-- **Административный сброс**: Администратор может принудительно сбросить блокировку
+### Main Features:
+* **Attempt tracking**: Each failed login attempt is saved in the database
+* **Automatic blocking**: After 3 failed attempts, the user is blocked for 24 hours
+* **Informative messages**: The user receives information about the number of remaining attempts
+* **Automatic unblocking**: The block is lifted after 24 hours
+* **Reset on successful login**: The attempt counter resets on correct password
+* **Administrative reset**: Admin can forcibly reset the block
 
-## Структура базы данных
+## Database Structure
 
-### Модель LoginAttempt
+### LoginAttempt Model
 ```javascript
 {
-  email: String,           // Email пользователя
-  attempts: Number,        // Количество неудачных попыток
-  blockedUntil: Date,      // Дата окончания блокировки
-  lastAttempt: Date        // Дата последней попытки
+  email: String,           // User email
+  attempts: Number,        // Number of failed attempts
+  blockedUntil: Date,      // Block expiration date
+  lastAttempt: Date        // Last attempt date
 }
 ```
 
 ## API Endpoints
 
 ### POST /api/users/login
-Вход в систему с проверкой блокировки
+Login with block check
 
-**Ответы при блокировке:**
-- `423 Locked` - Аккаунт заблокирован
-- `401 Unauthorized` - Неверные данные с указанием оставшихся попыток
+**Block responses:**
+- `423 Locked` - Account is blocked
+- `401 Unauthorized` - Invalid credentials with remaining attempts info
 
 ### PATCH /api/users/reset-login-attempts
-Сброс попыток входа (только для администраторов)
+Reset login attempts (admin only)
 
-**Тело запроса:**
+**Request body:**
 ```json
 {
   "email": "user@example.com"
 }
 ```
 
-## Логика работы
+## Logic
 
-### Алгоритм блокировки:
-1. При неудачной попытке входа система проверяет существующие записи
-2. Увеличивает счетчик попыток или создает новую запись
-3. После 3 попыток устанавливает `blockedUntil` на 24 часа вперед
-4. При каждом входе проверяется статус блокировки
+### Blocking Algorithm:
+1. On failed login, the system checks existing records
+2. Increments attempt counter or creates a new record
+3. After 3 attempts, sets `blockedUntil` to 24 hours ahead
+4. On each login, checks block status
 
-### Разблокировка:
-- **Автоматическая**: Через 24 часа (TTL индекс в MongoDB)
-- **При успешном входе**: Запись удаляется
-- **Административная**: Через API endpoint
+### Unblocking:
+- **Automatic**: After 24 hours (TTL index in MongoDB)
+- **On successful login**: Record is deleted
+- **Administrative**: Via API endpoint
 
-## Безопасность
+## Security
 
-### Защита от атак:
-- **Brute Force**: Блокировка после 3 попыток
-- **Rate Limiting**: По email адресу
-- **Временная блокировка**: 24 часа
-- **Логирование**: Все попытки сохраняются
+### Attack Protection:
+- **Brute Force**: Block after 3 attempts
+- **Rate Limiting**: By email address
+- **Temporary block**: 24 hours
+- **Logging**: All attempts are saved
 
-### Ограничения:
-- Блокировка применяется только по email
-- Не защищает от атак с разных email адресов
-- Требует активного мониторинга
+### Limitations:
+- Block applies only by email
+- Does not protect against attacks from different emails
+- Requires active monitoring
 
-## Тестирование
+## Testing
 
-### Автоматические тесты:
+### Automated tests:
 ```bash
 npm test -- user.blocking.test.js
 ```
 
-### Ручное тестирование:
+### Manual testing:
 ```powershell
 .\demo_user_blocking.ps1
 ```
 
-## Конфигурация
+## Configuration
 
-### Константы (в loginAttemptService.js):
+### Constants (in loginAttemptService.js):
 ```javascript
-const MAX_ATTEMPTS = 3;                    // Максимум попыток
-const BLOCK_DURATION = 24 * 60 * 60 * 1000; // 24 часа в мс
+const MAX_ATTEMPTS = 3;                    // Maximum attempts
+const BLOCK_DURATION = 24 * 60 * 60 * 1000; // 24 hours in ms
 ```
 
-### Переменные среды:
-- `ADMIN_REG_CODE` - Код для создания администратора
+### Environment variables:
+- `ADMIN_REG_CODE` - Code for creating admin
 
-## Мониторинг
+## Monitoring
 
-### Рекомендуемые метрики:
-- Количество заблокированных аккаунтов
-- Частота неудачных попыток входа
-- Время восстановления доступа
-- Использование административного сброса
+### Recommended metrics:
+- Number of blocked accounts
+- Frequency of failed login attempts
+- Time to restore access
+- Use of administrative reset
 
-### Логи:
-Все события блокировки логируются в консоль для мониторинга.
+### Logs:
+All blocking events are logged to the console for monitoring.
 
-## Дальнейшее развитие
+## Further Development
 
-### Возможные улучшения:
-- **IP-based blocking**: Блокировка по IP адресу
-- **Progressive delays**: Увеличивающиеся задержки
-- **CAPTCHA integration**: Проверка на робота
-- **Email notifications**: Уведомления о блокировке
-- **Audit trail**: Детальный журнал событий
+### Possible improvements:
+- **IP-based blocking**: Block by IP address
+- **Progressive delays**: Increasing delays
+- **CAPTCHA integration**: Bot check
+- **Email notifications**: Block notifications
+- **Audit trail**: Detailed event log
 
-### Интеграция с внешними системами:
-- **Redis**: Для быстрого кэширования
+### Integration with external systems:
+- **Redis**: For fast caching
 - **Monitoring tools**: Prometheus, Grafana
-- **Alert systems**: Уведомления администраторов
+- **Alert systems**: Admin notifications

@@ -22,7 +22,7 @@ const loginAttemptSchema = new Schema({
     }
 });
 
-// Автоматическое удаление записей после истечения блокировки
+// Automatic deletion of records after block expiration
 loginAttemptSchema.index({ blockedUntil: 1 }, {
     expireAfterSeconds: 0,
     partialFilterExpression: { blockedUntil: { $exists: true, $ne: null } }

@@ -16,7 +16,7 @@ const pad = (n) => String(n).padStart(2, "0");
 export default function logger(req, res, next) {
   const start = process.hrtime.bigint();
 
-  // Перехват writeHead чтобы можно было позже добавить сообщение (опционально)
+  // Intercept writeHead to optionally add a message later
   res.locals = res.locals || {};
 
   res.on("finish", () => {
@@ -38,11 +38,11 @@ export default function logger(req, res, next) {
             ? chalk.cyan(status)
             : chalk.green(status);
 
-    // Собираем краткую информацию о пользователе (если auth уже отработал и положил req.user)
+    // Collect brief user info (if auth middleware has already set req.user)
     let userInfo = 'guest';
     if (req.user) {
       const { _id, isAdmin, isBusiness } = req.user;
-      // Формат: <id>(A?)(B?)
+      // Format: <id>(A?)(B?)
       const flags = `${isAdmin ? 'A' : ''}${isBusiness ? 'B' : ''}`;
       userInfo = `${_id || 'no-id'}${flags ? '[' + flags + ']' : ''}`;
     }
@@ -54,10 +54,10 @@ export default function logger(req, res, next) {
       if (msg) line += ` -> ${msg}`;
     }
 
-    // Логируем в консоль с цветами
+    // Log to console with colors
     console.log(line);
 
-    // Логируем в файл только ошибки (статус 400 и выше)
+    // Log to file only errors (status 400 and above)
     if (status >= 400) {
       const logMessage = `STATUS: ${status} | METHOD: ${req.method} | URL: ${req.originalUrl} | RESPONSE_TIME: ${diffMs.toFixed(1)}ms | USER: ${userInfo}`;
       const msg = res.locals.errorMessage || res.statusMessage;

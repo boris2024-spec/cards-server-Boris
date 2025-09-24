@@ -1,12 +1,12 @@
 import LoginAttempt from "../models/LoginAttempt.js";
 
 const MAX_ATTEMPTS = 3;
-const BLOCK_DURATION = 24 * 60 * 60 * 1000; // 24 часа в миллисекундах
+const BLOCK_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 export const checkLoginAttempts = async (email) => {
     const loginAttempt = await LoginAttempt.findOne({ email });
 
-    // Проверяем, заблокирован ли пользователь
+    // Check if user is blocked
     if (loginAttempt && loginAttempt.blockedUntil && loginAttempt.blockedUntil > new Date()) {
         const timeLeft = Math.ceil((loginAttempt.blockedUntil - new Date()) / (1000 * 60 * 60));
         return {
@@ -36,7 +36,7 @@ export const handleFailedLogin = async (email) => {
         loginAttempt.lastAttempt = new Date();
     }
 
-    // Блокируем после достижения максимального количества попыток
+    // Block after reaching the maximum number of attempts
     if (loginAttempt.attempts >= MAX_ATTEMPTS) {
         loginAttempt.blockedUntil = new Date(Date.now() + BLOCK_DURATION);
     }
@@ -52,11 +52,11 @@ export const handleFailedLogin = async (email) => {
 };
 
 export const handleSuccessfulLogin = async (email) => {
-    // Удаляем запись о попытках при успешном входе
+    // Remove login attempt record on successful login
     await LoginAttempt.deleteOne({ email });
 };
 
 export const resetLoginAttempts = async (email) => {
-    // Для административного сброса попыток
+    // For administrative reset of attempts
     await LoginAttempt.deleteOne({ email });
 };

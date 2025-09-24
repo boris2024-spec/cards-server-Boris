@@ -1,0 +1,8 @@
+[2025-09-17 17:40:31] [ERROR] STATUS: 401 | METHOD: POST | URL: /users/login | IP: ::1 | ERROR: Invalid email or password
+[2025-09-17 17:40:31] [ERROR] STATUS: 401 | METHOD: POST | URL: /users/login | RESPONSE_TIME: 521.8ms | USER: guest | MESSAGE: Unauthorized
+[2025-09-17 21:01:10] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-17 21:07:16] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-17 21:07:18] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-17 21:12:01] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-17 21:18:18] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-17 21:18:27] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed

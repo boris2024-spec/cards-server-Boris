@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
 
-// Дополнительная конфигурация CORS: можно указать через переменную окружения CORS_ORIGINS="http://localhost:5173,http://127.0.0.1:5500"
+// Additional CORS configuration: can be set via env variable CORS_ORIGINS="http://localhost:5173,http://127.0.0.1:5500"
 const extraOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(/[,;\s]+/).filter(Boolean) : [];
 const defaultOrigins = [
     "http://127.0.0.1:5500",
@@ -15,7 +15,7 @@ const defaultOrigins = [
     "http://localhost:5174",
 
     "https://cards-projec.netlify.app"
-    
+
 ];
 const allowedOrigins = Array.from(new Set([...defaultOrigins, ...extraOrigins]));
 
@@ -24,7 +24,7 @@ const app = express();
 app.use(
     cors({
         origin: (origin, cb) => {
-            // Разрешаем REST инструменты без origin (Postman) и явно разрешенные.
+            // Allow REST tools without origin (Postman) and explicitly allowed origins.
             if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
             return cb(new Error("CORS: Origin not allowed"));
         },
@@ -54,7 +54,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Основной роутер
+// Main router
 app.use(router);
 
 if (process.env.NODE_ENV === "test") {

@@ -6,7 +6,7 @@ import { AppError } from "../../middlewares/errorHandler.js";
 import { checkLoginAttempts, handleFailedLogin, handleSuccessfulLogin, resetLoginAttempts } from "./loginAttemptService.js";
 
 export const createNewUser = async (user) => {
-  // не позволяем напрямую прислать isAdmin/isBusiness
+  // do not allow direct isAdmin/isBusiness assignment
   const { password, adminCode, ...rest } = user;
   const usersCount = await countUsersInDb();
   const isFirstUser = usersCount === 0;
@@ -18,13 +18,13 @@ export const createNewUser = async (user) => {
     password: generatePassword(password),
   };
 
-  const newUser = await createUser(userForDb); // createUser бросит ошибку при проблеме
+  const newUser = await createUser(userForDb); // createUser will throw on error
   const DTOuser = _.pick(newUser, ["email", "name", "_id", "isAdmin", "isBusiness", "isBlocked"]);
   return DTOuser;
 };
 
 export const login = async (email, password) => {
-  // Проверяем блокировку по попыткам входа
+  // Check block by login attempts
   const loginCheck = await checkLoginAttempts(email);
 
   if (loginCheck.isBlocked) {
@@ -51,16 +51,16 @@ export const login = async (email, password) => {
     throw new AppError(`Invalid email or password. ${attemptResult.remainingAttempts} attempts remaining`, 401);
   }
 
-  // Успешный вход - очищаем попытки
+  // Successful login - clear attempts
   await handleSuccessfulLogin(email);
 
   const token = generateToken(user);
-  console.log("my token"); // Выводим только "my token" в консоль для безопасности
+  console.log("my token"); // Print only "my token" to console for security
   return token;
 };
 
 export const deleteUser = async (userId) => {
-  const deletedUserId = await deleteUserInDb(userId); // deleteUserInDb бросит ошибку если не найден
+  const deletedUserId = await deleteUserInDb(userId); // deleteUserInDb will throw if not found
   return { userId: deletedUserId };
 };
 
@@ -100,7 +100,7 @@ export const updateUser = async (requester, userId, updates) => {
     }
   }
 
-  const updated = await updateUserInDb(userId, cleanUpdates); // бросит 404 при отсутствии
+  const updated = await updateUserInDb(userId, cleanUpdates); // will throw 404 if not found
   return _.pick(updated, ["_id", "email", "name", "isAdmin", "isBusiness", "isBlocked", "createdAt", "address", "image", "phone"]);
 };
 

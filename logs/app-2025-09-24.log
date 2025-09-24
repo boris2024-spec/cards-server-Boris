@@ -1,0 +1,11 @@
+[2025-09-24 12:34:25] [ERROR] STATUS: 404 | METHOD: GET | URL: /users/68c1b193eb7c38c1c3a746a1 | IP: ::1 | ERROR: User not found
+[2025-09-24 12:34:25] [ERROR] STATUS: 404 | METHOD: GET | URL: /users/68c1b193eb7c38c1c3a746a1 | RESPONSE_TIME: 8.3ms | USER: 68c1b193eb7c38c1c3a746a1[AB] | MESSAGE: Not Found
+[2025-09-24 12:34:51] [ERROR] STATUS: 401 | METHOD: POST | URL: /users/login | IP: ::1 | ERROR: Invalid email or password
+[2025-09-24 12:34:51] [ERROR] STATUS: 401 | METHOD: POST | URL: /users/login | RESPONSE_TIME: 25.1ms | USER: guest | MESSAGE: Unauthorized
+[2025-09-24 12:51:28] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-24 13:43:00] [ERROR] STATUS: 500 | METHOD: OPTIONS | URL: /users/688cdec2655ff17d394caedb | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-24 13:43:00] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-24 13:43:10] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-24 13:43:10] [ERROR] STATUS: 500 | METHOD: OPTIONS | URL: /users/688cdec2655ff17d394caedb | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-24 13:43:53] [ERROR] STATUS: 500 | METHOD: GET | URL: /cards | IP: ::1 | ERROR: CORS: Origin not allowed
+[2025-09-24 13:43:53] [ERROR] STATUS: 500 | METHOD: OPTIONS | URL: /users/688cdec2655ff17d394caedb | IP: ::1 | ERROR: CORS: Origin not allowed

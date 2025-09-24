@@ -1,9 +1,9 @@
 import cardSchema from "./cardValidationSchema.js";
 
-// Универсальная функция валидации карточки.
-// 1. abortEarly:false — собираем ВСЕ ошибки, чтобы вывести пользователю/в лог
-// 2. stripUnknown:true — отсекаем лишние поля, чтобы они не попадали в БД
-// Возвращает стандартный объект { value, error } из Joi.
+// Universal card validation function.
+// 1. abortEarly:false — collect ALL errors to show to user/log
+// 2. stripUnknown:true — remove extra fields so they don't get into DB
+// Returns standard { value, error } object from Joi.
 export const validateCard = (card) => {
   const result = cardSchema.validate(card, {
     abortEarly: false,
@@ -16,12 +16,8 @@ export const validateCard = (card) => {
       const path = d.path.join(".") || "root";
       lines.push(` - ${path}: ${d.message}`);
     });
-    // stdout для общей информации, stderr для сигнализации об ошибках
+    // stdout for general info, stderr for error signaling
     lines.forEach(l => console.log(l));
   }
   return result;
 };
-
-// משימה:
-// למנוע הכנסת כרטיס לא תקין למסד הנתונים
-// להדפיס בקונסול את הסיבה / כל הסיבות לשגיאה
