@@ -56,7 +56,7 @@ export const createNewCard = async (card, userId) => {
   }
   card.user_id = userId;
 
-  // Устанавливаем дефолтное изображение, если оно не указано
+  // Set default image if not provided
   if (!card.image || !card.image.url) {
     card.image = {
       url: "https://wallpaperbat.com/img/451048-free-wallpaper-free-photography-wallpaper-japanese-folk-culture-2-wallpaper-1366x768.jpg",
@@ -171,14 +171,14 @@ export const deleteCard = async (id) => {
 //toggleLike
 export const toggleLike = async (cardId, userId) => {
   try {
-    // Получаем только поле лайков для проверки существования
+    // Get only the likes field to check existence
     const existing = await Card.findById(cardId).select("_id likes");
     if (!existing) return { notFound: true };
 
     const hasLike = existing.likes?.includes(userId);
     const update = hasLike
       ? { $pull: { likes: userId } }
-      : { $addToSet: { likes: userId } }; // addToSet предотвращает дубликаты
+      : { $addToSet: { likes: userId } }; // addToSet prevents duplicates
 
     const updated = await Card.findByIdAndUpdate(cardId, update, { new: true });
     return { card: updated };

@@ -79,114 +79,114 @@ curl http://localhost:3000/health
 - **MongoDB**: 5.0 or higher
 - **npm**: 8.0 or higher
 
-### Пошаговая установка
+### Step-by-step installation
 
-1. **Установка зависимостей**
+1. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. **Настройка MongoDB**
+2. **Setup MongoDB**
    ```bash
-   # Локальная установка (Ubuntu/Debian)
+   # Local installation (Ubuntu/Debian)
    sudo apt install mongodb-server
    
-   # Или через Docker
+   # Or via Docker
    docker run -d -p 27017:27017 --name mongodb mongo:latest
    ```
 
-3. **Создание переменных окружения**
+3. **Create environment variables**
    ```bash
    cp .env.example .env
-   # Отредактируйте .env файл согласно вашим настройкам
+   # Edit .env file according to your settings
    ```
 
-4. **Запуск сервера**
+4. **Start the server**
    ```bash
-   # Режим разработки с hot-reload
+   # Development mode with hot-reload
    npm run dev
    
-   # Продакшн режим
+   # Production mode
    npm start
    ```
 
-## 🔧 Переменные окружения
+## 🔧 Environment Variables
 
-Создайте файл `.env` в корне проекта:
+Create a `.env` file in the project root:
 
 ```env
-# Основные настройки сервера
+# Basic server settings
 PORT=3000
 NODE_ENV=development
 
-# База данных MongoDB
+# MongoDB database
 MONGODB_URI=mongodb://127.0.0.1:27017/cards_app
 
-# JWT настройки
+# JWT settings
 JWT_SECRET=your_super_secret_jwt_key_change_me_in_production
 JWT_EXPIRES=1h
 
-# Административные настройки
+# Admin settings
 ADMIN_REG_CODE=your_admin_registration_code
 
-# Настройки бизнес-номеров
+# Business number settings
 BIZNUM_MAX_RETRIES=5
 
-# CORS настройки (разделитель: запятая)
+# CORS settings (separator: comma)
 CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5500,http://localhost:3001
 
-# Логирование
+# Logging
 LOG_LEVEL=info
 ```
 
-### Описание переменных
+### Variable descriptions
 
-| Переменная | Описание | По умолчанию | Обязательная |
-|------------|----------|--------------|--------------|
-| `PORT` | Порт сервера | `3000` | Нет |
-| `MONGODB_URI` | Строка подключения к MongoDB | `mongodb://127.0.0.1:27017/cards_app` | Да |
-| `JWT_SECRET` | Секретный ключ для JWT | - | Да |
-| `JWT_EXPIRES` | Время жизни JWT токена | `1h` | Нет |
-| `ADMIN_REG_CODE` | Код для регистрации администраторов | - | Нет |
-| `CORS_ORIGINS` | Разрешенные домены для CORS | `localhost:5173,127.0.0.1:5500` | Нет |
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `PORT` | Server port | `3000` | No |
+| `MONGODB_URI` | MongoDB connection string | `mongodb://127.0.0.1:27017/cards_app` | Yes |
+| `JWT_SECRET` | JWT secret key | - | Yes |
+| `JWT_EXPIRES` | JWT token lifetime | `1h` | No |
+| `ADMIN_REG_CODE` | Admin registration code | - | No |
+| `CORS_ORIGINS` | Allowed domains for CORS | `localhost:5173,127.0.0.1:5500` | No |
 
-## 📚 API документация
+## 📚 API Documentation
 
-### Формат ответов
+### Response Format
 
-Все API ответы следуют единому формату:
+All API responses follow a unified format:
 
-**Успешный ответ:**
+**Success response:**
 ```json
 {
   "status": "success",
   "data": {
-    // результат операции
+    // operation result
   }
 }
 ```
 
-**Ошибка:**
+**Error response:**
 ```json
 {
   "status": "error",
   "error": {
-    "message": "Описание ошибки",
+    "message": "Error description",
     "details": [
       {
         "path": "field_name",
-        "message": "Подробное описание ошибки поля"
+        "message": "Detailed field error description"
       }
     ]
   }
 }
 ```
 
-### 🔐 Аутентификация
+### 🔐 Authentication
 
-Сервер поддерживает два способа передачи JWT токена:
+The server supports two ways to pass JWT token:
 
-**Рекомендуемый способ (Bearer Token):**
+**Recommended method (Bearer Token):**
 ```javascript
 fetch('/api/cards', {
   headers: {
@@ -195,7 +195,7 @@ fetch('/api/cards', {
 });
 ```
 
-**Обратная совместимость:**
+**Backward compatibility:**
 ```javascript
 fetch('/api/cards', {
   headers: {
@@ -206,7 +206,7 @@ fetch('/api/cards', {
 
 ### 👥 Users API
 
-#### POST /users - Регистрация пользователя
+#### POST /users - Register user
 ```bash
 curl -X POST http://localhost:3000/users \
   -H "Content-Type: application/json" \
@@ -236,7 +236,7 @@ curl -X POST http://localhost:3000/users \
   }'
 ```
 
-#### POST /users/login - Вход в систему
+#### POST /users/login - Login
 ```bash
 curl -X POST http://localhost:3000/users/login \
   -H "Content-Type: application/json" \
@@ -246,19 +246,19 @@ curl -X POST http://localhost:3000/users/login \
   }'
 ```
 
-#### GET /users - Получить всех пользователей (Admin only)
+#### GET /users - Get all users (Admin only)
 ```bash
 curl -X GET http://localhost:3000/users \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### GET /users/:id - Получить пользователя по ID
+#### GET /users/:id - Get user by ID
 ```bash
 curl -X GET http://localhost:3000/users/USER_ID \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### PUT /users/:id - Обновить пользователя
+#### PUT /users/:id - Update user
 ```bash
 curl -X PUT http://localhost:3000/users/USER_ID \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -271,25 +271,25 @@ curl -X PUT http://localhost:3000/users/USER_ID \
   }'
 ```
 
-#### DELETE /users/:id - Удалить пользователя
+#### DELETE /users/:id - Delete user
 ```bash
 curl -X DELETE http://localhost:3000/users/USER_ID \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### PATCH /users/:id/block - Заблокировать пользователя (Admin only)
+#### PATCH /users/:id/block - Block user (Admin only)
 ```bash
 curl -X PATCH http://localhost:3000/users/USER_ID/block \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### PATCH /users/:id/unblock - Разблокировать пользователя (Admin only)
+#### PATCH /users/:id/unblock - Unblock user (Admin only)
 ```bash
 curl -X PATCH http://localhost:3000/users/USER_ID/unblock \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### PATCH /users/reset-login-attempts - Сбросить попытки входа (Admin only)
+#### PATCH /users/reset-login-attempts - Reset login attempts (Admin only)
 ```bash
 curl -X PATCH http://localhost:3000/users/reset-login-attempts \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -301,23 +301,23 @@ curl -X PATCH http://localhost:3000/users/reset-login-attempts \
 
 ### 🎯 Cards API
 
-#### GET /cards - Получить все карточки
+#### GET /cards - Get all cards
 ```bash
 curl -X GET http://localhost:3000/cards
 ```
 
-#### GET /cards/my-cards - Получить карточки текущего пользователя
+#### GET /cards/my-cards - Get current user's cards
 ```bash
 curl -X GET http://localhost:3000/cards/my-cards \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### GET /cards/:id - Получить карточку по ID
+#### GET /cards/:id - Get card by ID
 ```bash
 curl -X GET http://localhost:3000/cards/CARD_ID
 ```
 
-#### POST /cards - Создать карточку (Business user only)
+#### POST /cards - Create card (Business user only)
 ```bash
 curl -X POST http://localhost:3000/cards \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -344,7 +344,7 @@ curl -X POST http://localhost:3000/cards \
   }'
 ```
 
-#### PUT /cards/:id - Обновить карточку
+#### PUT /cards/:id - Update card
 ```bash
 curl -X PUT http://localhost:3000/cards/CARD_ID \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -354,44 +354,44 @@ curl -X PUT http://localhost:3000/cards/CARD_ID \
   }'
 ```
 
-#### DELETE /cards/:id - Удалить карточку
+#### DELETE /cards/:id - Delete card
 ```bash
 curl -X DELETE http://localhost:3000/cards/CARD_ID \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### PATCH /cards/:id/like - Лайкнуть/дизлайкнуть карточку
+#### PATCH /cards/:id/like - Like/unlike card
 ```bash
 curl -X PATCH http://localhost:3000/cards/CARD_ID/like \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### PATCH /cards/:id/bizNumber - Изменить бизнес-номер карточки
+#### PATCH /cards/:id/bizNumber - Change card business number
 ```bash
 curl -X PATCH http://localhost:3000/cards/CARD_ID/bizNumber \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### PATCH /cards/:id/block - Заблокировать карточку (Admin only)
+#### PATCH /cards/:id/block - Block card (Admin only)
 ```bash
 curl -X PATCH http://localhost:3000/cards/CARD_ID/block \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### PATCH /cards/:id/unblock - Разблокировать карточку (Admin only)
+#### PATCH /cards/:id/unblock - Unblock card (Admin only)
 ```bash
 curl -X PATCH http://localhost:3000/cards/CARD_ID/unblock \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### 🔍 Служебные эндпоинты
+### 🔍 Utility Endpoints
 
-#### GET /health - Проверка состояния сервера
+#### GET /health - Server health check
 ```bash
 curl -X GET http://localhost:3000/health
 ```
 
-Ответ:
+Response:
 ```json
 {
   "status": "ok",
@@ -400,124 +400,124 @@ curl -X GET http://localhost:3000/health
 }
 ```
 
-#### GET /ping - Простая проверка доступности
+#### GET /ping - Simple availability check
 ```bash
 curl -X GET http://localhost:3000/ping
 ```
 
-Ответ: `pong`
+Response: `pong`
 
-## 🏗 Архитектура проекта
+## 🏗 Project Architecture
 
-### Структура директорий
+### Directory Structure
 
 ```
 cards-server-Boris/
-├── 📁 auth/                    # Система аутентификации
+├── 📁 auth/                    # Authentication system
 │   ├── providers/
-│   │   └── jwtProvider.js      # JWT утилиты
+│   │   └── jwtProvider.js      # JWT utilities
 │   └── services/
-│       └── authService.js      # Middleware аутентификации
-├── 📁 cards/                   # Модуль карточек
+│       └── authService.js      # Authentication middleware
+├── 📁 cards/                   # Cards module
 │   ├── middlewares/
-│   │   └── cardPermissions.js  # Проверка прав доступа
+│   │   └── cardPermissions.js  # Access control
 │   ├── models/
-│   │   └── Card.js             # Mongoose модель карточки
+│   │   └── Card.js             # Mongoose card model
 │   ├── routes/
-│   │   └── cardsController.js  # Роуты карточек
+│   │   └── cardsController.js  # Card routes
 │   ├── services/
-│   │   ├── bizNumberService.js # Генерация бизнес-номеров
-│   │   ├── cardsDataService.js # Работа с БД
-│   │   ├── cardsService.js     # Бизнес-логика
-│   │   └── dtoService.js       # DTO преобразования
+│   │   ├── bizNumberService.js # Business number generation
+│   │   ├── cardsDataService.js # Database operations
+│   │   ├── cardsService.js     # Business logic
+│   │   └── dtoService.js       # DTO transformations
 │   └── validation/
-│       ├── cardValidationSchema.js    # Joi схемы
-│       └── cardValidationService.js   # Валидация сервис
-├── 📁 users/                   # Модуль пользователей
+│       ├── cardValidationSchema.js    # Joi schemas
+│       └── cardValidationService.js   # Validation service
+├── 📁 users/                   # Users module
 │   ├── helpers/
-│   │   └── bcrypt.js           # Хеширование паролей
+│   │   └── bcrypt.js           # Password hashing
 │   ├── models/
-│   │   ├── LoginAttempt.js     # Модель попыток входа
-│   │   └── User.js             # Mongoose модель пользователя
+│   │   ├── LoginAttempt.js     # Login attempts model
+│   │   └── User.js             # Mongoose user model
 │   ├── routes/
-│   │   └── usersController.js  # Роуты пользователей
+│   │   └── usersController.js  # User routes
 │   ├── services/
-│   │   ├── loginAttemptService.js    # Система блокировки
-│   │   ├── usersDataService.js       # Работа с БД
-│   │   └── usersService.js           # Бизнес-логика
+│   │   ├── loginAttemptService.js    # Blocking system
+│   │   ├── usersDataService.js       # Database operations
+│   │   └── usersService.js           # Business logic
 │   └── validation/
-│       └── userValidationSchema.js   # Joi схемы
-├── 📁 middlewares/             # Общие middleware
-│   ├── errorHandler.js         # Централизованная обработка ошибок
-│   ├── logger.js               # Логирование запросов
-│   └── response.js             # Унификация ответов
-├── 📁 helpers/                 # Вспомогательные утилиты
-│   ├── mongooseValidators.js   # Mongoose валидаторы
-│   └── submodels/              # Подмодели
-│       ├── Address.js          # Схема адреса
-│       ├── Image.js            # Схема изображения
-│       └── Name.js             # Схема имени
-├── 📁 tests/                   # Тесты
-│   ├── app.ping.test.js        # Тест ping эндпоинта
-│   ├── auth.header.test.js     # Тест аутентификации
-│   ├── card.blocking.test.js   # Тест блокировки карточек
-│   ├── card.validation.messages.test.js  # Тест валидации
-│   ├── health.test.js          # Тест health эндпоинта
-│   ├── integration.flow.test.js          # Интеграционные тесты
-│   └── user.blocking.test.js   # Тест блокировки пользователей
-├── 📁 config/                  # Конфигурация
-├── 📁 DB/                      # Работа с базой данных
-├── 📁 logs/                    # Логи приложения
-├── 📁 public/                  # Статические файлы
-└── 📁 router/                  # Основной роутер
+│       └── userValidationSchema.js   # Joi schemas
+├── 📁 middlewares/             # Common middleware
+│   ├── errorHandler.js         # Centralized error handling
+│   ├── logger.js               # Request logging
+│   └── response.js             # Response unification
+├── 📁 helpers/                 # Utility helpers
+│   ├── mongooseValidators.js   # Mongoose validators
+│   └── submodels/              # Submodels
+│       ├── Address.js          # Address schema
+│       ├── Image.js            # Image schema
+│       └── Name.js             # Name schema
+├── 📁 tests/                   # Tests
+│   ├── app.ping.test.js        # Ping endpoint test
+│   ├── auth.header.test.js     # Authentication test
+│   ├── card.blocking.test.js   # Card blocking test
+│   ├── card.validation.messages.test.js  # Validation test
+│   ├── health.test.js          # Health endpoint test
+│   ├── integration.flow.test.js          # Integration tests
+│   └── user.blocking.test.js   # User blocking test
+├── 📁 config/                  # Configuration
+├── 📁 DB/                      # Database utilities
+├── 📁 logs/                    # Application logs
+├── 📁 public/                  # Static files
+└── 📁 router/                  # Main router
 ```
 
-### Принципы архитектуры
+### Architecture Principles
 
-1. **Модульность**: Каждый домен (users, cards, auth) изолирован
+1. **Modularity**: Each domain (users, cards, auth) is isolated
 2. **Layered Architecture**: Controller → Service → DataService → Model
-3. **Middleware система**: Переиспользуемые компоненты для авторизации, логирования, ошибок
-4. **Валидация**: Двойная валидация (Joi + Mongoose)
-5. **Error Handling**: Централизованная обработка с детальными сообщениями
+3. **Middleware System**: Reusable components for authorization, logging, errors
+4. **Validation**: Double validation (Joi + Mongoose)
+5. **Error Handling**: Centralized processing with detailed messages
 
-### Ролевая модель
+### Role Model
 
-| Роль | Описание | Возможности |
-|------|----------|-------------|
-| **Regular User** | Обычный пользователь | Просмотр карточек, лайки |
-| **Business User** | Бизнес пользователь | + Создание/редактирование своих карточек |
-| **Admin** | Администратор | + Управление всеми пользователями и карточками |
+| Role | Description | Capabilities |
+|------|-------------|--------------|
+| **Regular User** | Standard user | View cards, likes |
+| **Business User** | Business user | + Create/edit own cards |
+| **Admin** | Administrator | + Manage all users and cards |
 
-### Модели данных
+### Data Models
 
 #### User Schema
 ```javascript
 {
   _id: ObjectId,
-  email: String,               // unique, валидация email
-  password: String,            // bcrypt хеш
+  email: String,               // unique, email validation
+  password: String,            // bcrypt hash
   name: {
-    first: String,             // обязательное
-    middle: String,            // опциональное
-    last: String               // обязательное
+    first: String,             // required
+    middle: String,            // optional
+    last: String               // required
   },
-  phone: String,               // валидация телефона
+  phone: String,               // phone validation
   image: {
-    url: String,               // URL изображения
-    alt: String                // alt текст
+    url: String,               // image URL
+    alt: String                // alt text
   },
   address: {
     state: String,
-    country: String,           // обязательное
-    city: String,              // обязательное
-    street: String,            // обязательное
-    houseNumber: Number,       // обязательное
-    zip: Number                // опциональное
+    country: String,           // required
+    city: String,              // required
+    street: String,            // required
+    houseNumber: Number,       // required
+    zip: Number                // optional
   },
-  isAdmin: Boolean,            // по умолчанию false
-  isBusiness: Boolean,         // по умолчанию false
-  isBlocked: Boolean,          // по умолчанию false
-  createdAt: Date              // автоматически
+  isAdmin: Boolean,            // default false
+  isBusiness: Boolean,         // default false
+  isBlocked: Boolean,          // default false
+  createdAt: Date              // automatic
 }
 ```
 
@@ -525,17 +525,17 @@ cards-server-Boris/
 ```javascript
 {
   _id: ObjectId,
-  title: String,               // обязательное
-  subtitle: String,            // обязательное
-  description: String,         // обязательное, до 1024 символов
-  phone: String,               // валидация телефона
-  email: String,               // валидация email
-  web: String,                 // валидация URL
+  title: String,               // required
+  subtitle: String,            // required
+  description: String,         // required, up to 1024 chars
+  phone: String,               // phone validation
+  email: String,               // email validation
+  web: String,                 // URL validation
   image: {
-    url: String,               // URL изображения
-    alt: String                // alt текст
+    url: String,               // image URL
+    alt: String                // alt text
   },
-  address: {                   // как в User
+  address: {                   // same as User
     state: String,
     country: String,
     city: String,
@@ -543,188 +543,188 @@ cards-server-Boris/
     houseNumber: Number,
     zip: Number
   },
-  bizNumber: Number,           // уникальный 7-значный номер
-  likes: [String],             // массив ID пользователей
-  isBlocked: Boolean,          // по умолчанию false
-  createdAt: Date,             // автоматически
-  user_id: String              // ID владельца карточки
+  bizNumber: Number,           // unique 7-digit number
+  likes: [String],             // array of user IDs
+  isBlocked: Boolean,          // default false
+  createdAt: Date,             // automatic
+  user_id: String              // card owner ID
 }
 ```
 
 #### LoginAttempt Schema
 ```javascript
 {
-  email: String,               // email пользователя
-  attempts: Number,            // количество попыток
-  blockedUntil: Date,          // время окончания блокировки
-  lastAttempt: Date            // время последней попытки
+  email: String,               // user email
+  attempts: Number,            // number of attempts
+  blockedUntil: Date,          // blocking end time
+  lastAttempt: Date            // last attempt time
 }
 ```
 
-## 🧪 Тестирование
+## 🧪 Testing
 
-### Запуск тестов
+### Running Tests
 
 ```bash
-# Все тесты
+# All tests
 npm test
 
-# Отдельные тесты
+# Specific tests
 npm test -- --testPathPattern=user.blocking
 npm test -- --testPathPattern=integration.flow
 npm test -- --testPathPattern=card.validation
 
-# С покрытием кода
+# With coverage
 npm test -- --coverage
 
-# В watch режиме
+# In watch mode
 npm test -- --watch
 ```
 
-### Структура тестов
+### Test Structure
 
-1. **Unit тесты**: Тестирование отдельных модулей
-   - `card.validation.messages.test.js` - валидация карточек
-   - `auth.header.test.js` - аутентификация
+1. **Unit tests**: Testing individual modules
+   - `card.validation.messages.test.js` - card validation
+   - `auth.header.test.js` - authentication
 
-2. **Integration тесты**: Полные сценарии
-   - `integration.flow.test.js` - полный пользовательский путь
-   - `user.blocking.test.js` - система блокировки
-   - `card.blocking.test.js` - блокировка карточек
+2. **Integration tests**: Complete scenarios
+   - `integration.flow.test.js` - full user journey
+   - `user.blocking.test.js` - blocking system
+   - `card.blocking.test.js` - card blocking
 
-3. **API тесты**: Проверка эндпоинтов
-   - `app.ping.test.js` - базовая доступность
+3. **API tests**: Endpoint verification
+   - `app.ping.test.js` - basic availability
    - `health.test.js` - health check
 
-### Тестовые сценарии
+### Test Scenarios
 
-#### Интеграционный тест (integration.flow.test.js)
-1. Регистрация пользователя
-2. Вход в систему и получение JWT
-3. Создание бизнес-карточки
-4. Лайк карточки
-5. Повторный лайк (отмена)
-6. Проверка финального состояния
+#### Integration Test (integration.flow.test.js)
+1. User registration
+2. Login and JWT retrieval
+3. Business card creation
+4. Card liking
+5. Like toggle (unlike)
+6. Final state verification
 
-#### Тест блокировки пользователей (user.blocking.test.js)
-1. 3 неудачные попытки входа
-2. Автоматическая блокировка на 24 часа
-3. Проверка сообщений об ошибках
-4. Административный сброс блокировки
+#### User Blocking Test (user.blocking.test.js)
+1. 3 failed login attempts
+2. Automatic 24-hour block
+3. Error message verification
+4. Administrative reset
 
-### Демо скрипты
+### Demo Scripts
 
 ```bash
-# Windows PowerShell демо блокировки пользователей
+# Windows PowerShell user blocking demo
 .\demo_user_blocking.ps1
 
-# Unix/Linux демо блокировки пользователей
+# Unix/Linux user blocking demo
 ./demo_user_blocking.sh
 ```
 
-## 🌐 Совместимость с фронтендом
+## 🌐 Frontend Compatibility
 
 ### React Frontend Compatibility
 
-Сервер на 100% совместим с React фронтендом:
-- **Репозиторий**: https://github.com/boris2024-spec/cards-proj-Boris-main-main
-- **Технологии**: React 19.1.0, MUI 7.1.0, Vite 6, Axios
+The server is 100% compatible with React frontend:
+- **Repository**: https://github.com/boris2024-spec/cards-proj-Boris-main-main
+- **Technologies**: React 19.1.0, MUI 7.1.0, Vite 6, Axios
 
-### API совместимость
+### API Compatibility
 
-✅ **Полная совместимость всех эндпоинтов:**
-- Users API: регистрация, логин, CRUD операции
-- Cards API: создание, редактирование, лайки
-- Admin API: блокировка пользователей и карточек
+✅ **Full compatibility of all endpoints:**
+- Users API: registration, login, CRUD operations
+- Cards API: creation, editing, likes
+- Admin API: user and card blocking
 
-✅ **Идентичные структуры данных:**
-- User и Card модели полностью соответствуют
-- Одинаковые правила валидации (Joi)
-- Совпадающие форматы ответов
+✅ **Identical data structures:**
+- User and Card models fully correspond
+- Same validation rules (Joi)
+- Matching response formats
 
-✅ **Аутентификация:**
-- JWT токены работают идентично
-- Поддержка обоих форматов заголовков
-- Ролевая модель синхронизирована
+✅ **Authentication:**
+- JWT tokens work identically
+- Support for both header formats
+- Synchronized role model
 
-### CORS настройки для фронтенда
+### CORS Settings for Frontend
 
 ```env
-# Для разработки
+# For development
 CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5500
 
-# Для продакшена
+# For production
 CORS_ORIGINS=https://your-frontend-domain.com,https://app.example.com
 ```
 
-### Настройка фронтенда
+### Frontend Setup
 
-В фронтенд проекте создайте `.env.local`:
+In the frontend project, create `.env.local`:
 ```env
 VITE_API_BASE=http://localhost:3000
-# Или для продакшена:
+# Or for production:
 # VITE_API_BASE=https://your-backend-domain.com
 ```
 
-## 🔒 Система безопасности
+## 🔒 Security System
 
-### JWT токены
-- **Алгоритм**: HS256
-- **Полезная нагрузка**: `{ _id, isBusiness, isAdmin }`
-- **Время жизни**: Настраивается через `JWT_EXPIRES`
-- **Секрет**: Обязательно изменить `JWT_SECRET` в продакшене
+### JWT Tokens
+- **Algorithm**: HS256
+- **Payload**: `{ _id, isBusiness, isAdmin }`
+- **Lifetime**: Configurable via `JWT_EXPIRES`
+- **Secret**: Must change `JWT_SECRET` in production
 
-### Система блокировки входа
-- **Лимит попыток**: 3 неудачные попытки
-- **Время блокировки**: 24 часа
-- **Сброс**: Автоматический через TTL или административный
-- **Мониторинг**: Логирование всех попыток
+### Login Blocking System
+- **Attempt limit**: 3 failed attempts
+- **Block duration**: 24 hours
+- **Reset**: Automatic via TTL or administrative
+- **Monitoring**: Logging of all attempts
 
-### Валидация данных
-- **Frontend валидация**: Joi схемы
-- **Backend валидация**: Mongoose + Joi
-- **Санитизация**: Автоматическое удаление лишних полей
-- **Безопасные пароли**: bcrypt с salt
+### Data Validation
+- **Frontend validation**: Joi schemas
+- **Backend validation**: Mongoose + Joi
+- **Sanitization**: Automatic removal of extra fields
+- **Secure passwords**: bcrypt with salt
 
-### CORS защита
-- **Настраиваемые домены**: Через переменные окружения
-- **Credentials**: Поддержка авторизационных заголовков
-- **Методы**: Полная поддержка REST API
+### CORS Protection
+- **Configurable domains**: Via environment variables
+- **Credentials**: Support for authorization headers
+- **Methods**: Full REST API support
 
-## 📊 Мониторинг и логирование
+## 📊 Monitoring and Logging
 
 ### Health Check
 ```bash
 curl http://localhost:3000/health
 ```
 
-Ответ включает:
-- Статус сервера
-- Время работы (uptime)
-- Состояние подключения к БД
-- HTTP статус 200 (OK) или 503 (Service Unavailable)
+Response includes:
+- Server status
+- Uptime
+- Database connection status
+- HTTP status 200 (OK) or 503 (Service Unavailable)
 
-### Логирование
+### Logging
 
-**Morgan middleware** для HTTP запросов:
+**Morgan middleware** for HTTP requests:
 ```
 GET /cards 200 45ms - 1.2kb
 POST /users/login 401 12ms - 0.5kb
 ```
 
-**Приложение логи** в директории `logs/`:
-- `app.log` - текущие логи
-- `app-YYYY-MM-DD.log` - архивные логи по дням
+**Application logs** in `logs/` directory:
+- `app.log` - current logs
+- `app-YYYY-MM-DD.log` - archived daily logs
 
-**Уровни логирования**:
-- `info` - обычные операции
-- `warn` - предупреждения
-- `error` - ошибки приложения
-- `debug` - отладочная информация
+**Logging levels**:
+- `info` - normal operations
+- `warn` - warnings
+- `error` - application errors
+- `debug` - debug information
 
-### Метрики для мониторинга
+### Metrics for Monitoring
 
-Рекомендуемые метрики для продакшена:
+Recommended metrics for production:
 - Response time per endpoint
 - Error rate (4xx, 5xx)
 - Database connection status
@@ -732,33 +732,33 @@ POST /users/login 401 12ms - 0.5kb
 - Failed login attempts
 - Active user sessions
 
-## 🚀 Развертывание
+## 🚀 Deployment
 
-### Локальная разработка
+### Local Development
 
-1. **Настройка MongoDB**:
+1. **MongoDB Setup**:
    ```bash
-   # Docker вариант
+   # Docker option
    docker run -d -p 27017:27017 --name mongodb mongo:latest
    
-   # Или локальная установка
+   # Or local installation
    brew install mongodb-community    # macOS
    sudo apt install mongodb-server   # Ubuntu
    ```
 
-2. **Запуск в dev режиме**:
+2. **Start in dev mode**:
    ```bash
    npm run dev
    ```
 
-3. **Проверка**:
+3. **Check**:
    ```bash
    curl http://localhost:3000/health
    ```
 
-### Продакшн развертывание
+### Production Deployment
 
-#### Docker развертывание
+#### Docker Deployment
 
 **Dockerfile:**
 ```dockerfile
@@ -798,36 +798,36 @@ volumes:
   mongo_data:
 ```
 
-**Запуск:**
+**Start:**
 ```bash
 docker-compose up -d
 ```
 
-#### Heroku развертывание
+#### Heroku Deployment
 
 ```bash
-# Создание приложения
+# Create application
 heroku create your-cards-server
 
-# Добавление MongoDB (MongoAtlas addon)
+# Add MongoDB (MongoAtlas addon)
 heroku addons:create mongolab:sandbox
 
-# Настройка переменных
+# Set variables
 heroku config:set JWT_SECRET=your_production_jwt_secret
 heroku config:set ADMIN_REG_CODE=your_admin_code
 heroku config:set CORS_ORIGINS=https://your-frontend.herokuapp.com
 
-# Деплой
+# Deploy
 git push heroku main
 ```
 
-#### VPS/Cloud развертывание
+#### VPS/Cloud Deployment
 
 ```bash
-# PM2 для управления процессами
+# PM2 for process management
 npm install -g pm2
 
-# Создание ecosystem файла
+# Create ecosystem file
 cat > ecosystem.config.js << EOF
 module.exports = {
   apps: [{
@@ -845,13 +845,13 @@ module.exports = {
 }
 EOF
 
-# Запуск в продакшене
+# Start in production
 pm2 start ecosystem.config.js --env production
 pm2 save
 pm2 startup
 ```
 
-#### Nginx конфигурация
+#### Nginx Configuration
 
 ```nginx
 server {
@@ -872,41 +872,41 @@ server {
 }
 ```
 
-### Переменные окружения для продакшена
+### Production Environment Variables
 
 ```env
-# Продакшн настройки
+# Production settings
 NODE_ENV=production
 PORT=3000
 
-# Безопасность
+# Security
 JWT_SECRET=your_very_long_and_secure_jwt_secret_here
 ADMIN_REG_CODE=super_secure_admin_registration_code
 
-# База данных (MongoDB Atlas рекомендуется)
+# Database (MongoDB Atlas recommended)
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/cards_app
 
-# CORS для продакшена
+# CORS for production
 CORS_ORIGINS=https://your-frontend.com,https://app.your-domain.com
 
-# Опциональные настройки
+# Optional settings
 LOG_LEVEL=warn
 BIZNUM_MAX_RETRIES=10
 ```
 
-## 🛠 Дополнительные утилиты
+## 🛠 Additional Utilities
 
-### Очистка базы данных
+### Clear Database
 ```bash
 node clear_db.js
 ```
 
-### Заполнение тестовыми данными
+### Seed Test Data
 ```bash
 node seed.js
 ```
 
-### Скрипты для тестирования
+### Testing Scripts
 
 **package.json scripts:**
 ```json
@@ -924,112 +924,112 @@ node seed.js
 }
 ```
 
-## 📋 TODO / Дальнейшее развитие
+## 📋 TODO / Future Development
 
-### Краткосрочные улучшения
-- [ ] **Refresh токены** для автоматического обновления JWT
-- [ ] **Email change endpoint** - отдельный эндпоинт для смены email
-- [ ] **Swagger/OpenAPI** документация
-- [ ] **Rate limiting** для всех эндпоинтов
-- [ ] **Soft delete** вместо жесткого удаления записей
+### Short-term Improvements
+- [ ] **Refresh tokens** for automatic JWT renewal
+- [ ] **Email change endpoint** - separate endpoint for email changes
+- [ ] **Swagger/OpenAPI** documentation
+- [ ] **Rate limiting** for all endpoints
+- [ ] **Soft delete** instead of hard deletion
 
-### Среднесрочные цели
-- [ ] **Redis** интеграция для кэширования и сессий
-- [ ] **Email уведомления** при блокировке/регистрации
-- [ ] **Image upload** поддержка для аватаров и карточек
-- [ ] **Search API** для поиска карточек
-- [ ] **Pagination** для больших списков
+### Medium-term Goals
+- [ ] **Redis** integration for caching and sessions
+- [ ] **Email notifications** for blocking/registration
+- [ ] **Image upload** support for avatars and cards
+- [ ] **Search API** for card searching
+- [ ] **Pagination** for large lists
 
-### Долгосрочные планы
-- [ ] **Microservices** архитектура
-- [ ] **GraphQL** API в дополнение к REST
-- [ ] **Real-time** уведомления через WebSocket
-- [ ] **Analytics** и метрики использования
-- [ ] **API versioning** для обратной совместимости
+### Long-term Plans
+- [ ] **Microservices** architecture
+- [ ] **GraphQL** API in addition to REST
+- [ ] **Real-time** notifications via WebSocket
+- [ ] **Analytics** and usage metrics
+- [ ] **API versioning** for backward compatibility
 
-### Безопасность
-- [ ] **2FA** двухфакторная аутентификация
-- [ ] **OAuth** интеграция (Google, Facebook)
-- [ ] **IP-based blocking** в дополнение к email блокировке
-- [ ] **CAPTCHA** интеграция после множественных неудач
-- [ ] **Security headers** (Helmet.js расширенная настройка)
+### Security
+- [ ] **2FA** two-factor authentication
+- [ ] **OAuth** integration (Google, Facebook)
+- [ ] **IP-based blocking** in addition to email blocking
+- [ ] **CAPTCHA** integration after multiple failures
+- [ ] **Security headers** (extended Helmet.js configuration)
 
 ### DevOps
 - [ ] **CI/CD pipeline** (GitHub Actions)
-- [ ] **Automated testing** в CI
-- [ ] **Code quality** проверки (SonarQube)
+- [ ] **Automated testing** in CI
+- [ ] **Code quality** checks (SonarQube)
 - [ ] **Performance monitoring** (New Relic, DataDog)
-- [ ] **Automated backups** для MongoDB
+- [ ] **Automated backups** for MongoDB
 
-## 🤝 Вклад в проект
+## 🤝 Contributing
 
-### Как внести вклад
+### How to Contribute
 
-1. **Fork** репозитория
-2. Создайте **feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit** изменения: `git commit -m 'Add amazing feature'`
-4. **Push** в branch: `git push origin feature/amazing-feature`
-5. Откройте **Pull Request**
+1. **Fork** the repository
+2. Create a **feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit** changes: `git commit -m 'Add amazing feature'`
+4. **Push** to branch: `git push origin feature/amazing-feature`
+5. Open a **Pull Request**
 
-### Стандарты кода
+### Code Standards
 
-- **ESLint** конфигурация в `eslint.config.js`
-- **Conventional Commits** для сообщений коммитов
-- **Jest** для всех новых функций
-- **JSDoc** комментарии для публичных API
+- **ESLint** configuration in `eslint.config.js`
+- **Conventional Commits** for commit messages
+- **Jest** for all new features
+- **JSDoc** comments for public APIs
 
-### Тестирование перед PR
+### Testing Before PR
 
 ```bash
-# Запуск всех тестов
+# Run all tests
 npm test
 
-# Проверка линтера
+# Check linter
 npm run lint
 
-# Проверка типов (если используется TypeScript)
+# Type checking (if using TypeScript)
 npm run type-check
 ```
 
-## 📄 Лицензия
+## 📄 License
 
-Этот проект лицензирован под [ISC License](LICENSE).
+This project is licensed under the [ISC License](LICENSE).
 
-## 👥 Авторы и благодарности
+## 👥 Authors and Acknowledgments
 
-- **Boris** - Основной разработчик
-- **Команда курса Full Stack** - Менторство и поддержка
+- **Boris** - Main developer
+- **Full Stack Course Team** - Mentorship and support
 
-### Благодарности
-- **Express.js** команде за отличный фреймворк
-- **MongoDB** за надежную базу данных
-- **Jest** за качественное тестирование
-- **Joi** за мощную валидацию
+### Acknowledgments
+- **Express.js** team for excellent framework
+- **MongoDB** for reliable database
+- **Jest** for quality testing
+- **Joi** for powerful validation
 
-## 📞 Поддержка
+## 📞 Support
 
-Если у вас есть вопросы или проблемы:
+If you have questions or issues:
 
-1. **GitHub Issues**: [Создать issue](https://github.com/boris2024-spec/cards-server-Boris/issues)
+1. **GitHub Issues**: [Create issue](https://github.com/boris2024-spec/cards-server-Boris/issues)
 2. **Email**: boris2024.spec@example.com
-3. **Документация**: Читайте этот README и код комментарии
+3. **Documentation**: Read this README and code comments
 
-### Часто задаваемые вопросы (FAQ)
+### Frequently Asked Questions (FAQ)
 
-**Q: Как сбросить пароль пользователя?**
-A: В текущей версии только через базу данных. Планируется добавить endpoint для сброса пароля.
+**Q: How to reset user password?**
+A: In current version only through database. Password reset endpoint is planned.
 
-**Q: Можно ли изменить количество попыток входа?**
-A: Да, измените константу `MAX_ATTEMPTS` в `loginAttemptService.js`.
+**Q: Can I change the number of login attempts?**
+A: Yes, modify the `MAX_ATTEMPTS` constant in `loginAttemptService.js`.
 
-**Q: Как добавить новые поля в карточку?**
-A: Обновите схему в `Card.js`, добавьте валидацию в `cardValidationSchema.js` и тесты.
+**Q: How to add new fields to cards?**
+A: Update schema in `Card.js`, add validation in `cardValidationSchema.js` and tests.
 
-**Q: Поддерживается ли кластерный режим?**
-A: Да, сервер stateless и может работать в кластере с внешней MongoDB.
+**Q: Is cluster mode supported?**
+A: Yes, the server is stateless and can work in cluster with external MongoDB.
 
 ---
 
-**🎯 Cards Server API - Профессиональное решение для управления бизнес-карточками**
+**🎯 Cards Server API - Professional solution for managing business cards**
 
-*Создано с ❤️ для сообщества разработчиков*
+*Created with ❤️ for the developer community*

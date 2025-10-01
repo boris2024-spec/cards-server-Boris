@@ -1,17 +1,22 @@
 import { verifyToken } from "../providers/jwtProvider.js";
 
-// Извлекаем JWT из нескольких возможных мест (x-auth-token или Authorization: Bearer <token>)
+// Extract JWT from multiple possible locations (x-auth-token or Authorization: Bearer <token>)
 const extractToken = (req) => {
   const direct = req.header("x-auth-token");
   if (direct) return direct.trim();
+
   const authHeader = req.header("authorization");
   if (!authHeader) return null;
-  // Поддерживаем формат "Bearer <token>"
-  const [scheme, value] = authHeader.split(" ");
-  if (scheme && /^Bearer$/i.test(scheme) && value) return value.trim();
-  // Если заголовок без схемы – тоже пробуем
-  if (!scheme && authHeader) return authHeader.trim();
-  return null;
+
+  // Support "Bearer <token>" format
+  const parts = authHeader.split(" ");
+  if (parts.length === 2) {
+    const [scheme, token] = parts;
+    if (/^Bearer$/i.test(scheme)) return token.trim();
+  }
+
+  // Fallback: treat entire header as token (for legacy support)
+  return authHeader.trim();
 };
 
 export const auth = (req, res, next) => {

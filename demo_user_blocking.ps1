@@ -1,22 +1,22 @@
-# Демонстрация блокировки пользователя после 3 неудачных попыток входа
+# Demonstration of user blocking after 3 failed login attempts
 
-Write-Host "=== Демонстрация системы блокировки пользователей ===" -ForegroundColor Green
+Write-Host "=== User Blocking System Demonstration ===" -ForegroundColor Green
 
-# Убедимся, что сервер запущен
+# Make sure the server is running
 $serverRunning = $false
 try {
     $response = Invoke-WebRequest -Uri "http://localhost:8181/api/health" -Method GET -TimeoutSec 5
     if ($response.StatusCode -eq 200) {
         $serverRunning = $true
-        Write-Host "✓ Сервер запущен" -ForegroundColor Green
+        Write-Host "✓ Server is running" -ForegroundColor Green
     }
 } catch {
-    Write-Host "✗ Сервер не запущен. Запустите сервер командой: npm start" -ForegroundColor Red
+    Write-Host "✗ Server is not running. Start the server with command: npm start" -ForegroundColor Red
     exit 1
 }
 
 if (-not $serverRunning) {
-    Write-Host "✗ Сервер недоступен" -ForegroundColor Red
+    Write-Host "✗ Server is unavailable" -ForegroundColor Red
     exit 1
 }
 
@@ -24,7 +24,7 @@ $testEmail = "demo@blocking.test"
 $correctPassword = "Demo123!"
 $wrongPassword = "WrongPassword"
 
-# Функция для создания тестового пользователя
+# Function to create test user
 function Create-TestUser {
     $userData = @{
         name = @{
@@ -51,19 +51,19 @@ function Create-TestUser {
 
     try {
         $response = Invoke-WebRequest -Uri "http://localhost:8181/api/users" -Method POST -Body $userData -ContentType "application/json"
-        Write-Host "✓ Тестовый пользователь создан" -ForegroundColor Green
+        Write-Host "✓ Test user created" -ForegroundColor Green
         return $true
     } catch {
         if ($_.Exception.Response.StatusCode -eq 409) {
-            Write-Host "! Пользователь уже существует" -ForegroundColor Yellow
+            Write-Host "! User already exists" -ForegroundColor Yellow
             return $true
         }
-        Write-Host "✗ Ошибка создания пользователя: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "✗ Error creating user: $($_.Exception.Message)" -ForegroundColor Red
         return $false
     }
 }
 
-# Функция для попытки входа
+# Function to attempt login
 function Try-Login {
     param($email, $password, $attemptNumber)
     
@@ -74,7 +74,7 @@ function Try-Login {
 
     try {
         $response = Invoke-WebRequest -Uri "http://localhost:8181/api/users/login" -Method POST -Body $loginData -ContentType "application/json"
-        Write-Host "✓ Попытка $attemptNumber`: Успешный вход" -ForegroundColor Green
+        Write-Host "✓ Attempt $attemptNumber`: Successful login" -ForegroundColor Green
         return $response
     } catch {
         $statusCode = $_.Exception.Response.StatusCode.value__
@@ -89,12 +89,12 @@ function Try-Login {
             $errorMessage = $_.Exception.Message
         }
 
-        Write-Host "✗ Попытка $attemptNumber`: $errorMessage (Код: $statusCode)" -ForegroundColor Red
+        Write-Host "✗ Attempt $attemptNumber`: $errorMessage (Code: $statusCode)" -ForegroundColor Red
         return $null
     }
 }
 
-# Функция для сброса попыток (требует админ токен)
+# Function to reset login attempts (requires admin token)
 function Reset-LoginAttempts {
     param($adminToken, $email)
     
@@ -105,38 +105,38 @@ function Reset-LoginAttempts {
     try {
         $headers = @{ 'x-auth-token' = $adminToken }
         $response = Invoke-WebRequest -Uri "http://localhost:8181/api/users/reset-login-attempts" -Method PATCH -Body $resetData -ContentType "application/json" -Headers $headers
-        Write-Host "✓ Попытки входа сброшены администратором" -ForegroundColor Green
+        Write-Host "✓ Login attempts reset by administrator" -ForegroundColor Green
         return $true
     } catch {
-        Write-Host "✗ Ошибка сброса попыток: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "✗ Error resetting attempts: $($_.Exception.Message)" -ForegroundColor Red
         return $false
     }
 }
 
-# Основная демонстрация
-Write-Host "`n--- Шаг 1: Создание тестового пользователя ---" -ForegroundColor Cyan
+# Main demonstration
+Write-Host "`n--- Step 1: Creating test user ---" -ForegroundColor Cyan
 if (-not (Create-TestUser)) {
     exit 1
 }
 
-Write-Host "`n--- Шаг 2: Демонстрация неудачных попыток входа ---" -ForegroundColor Cyan
-Write-Host "Пробуем войти с неправильным паролем 3 раза..."
+Write-Host "`n--- Step 2: Demonstrating failed login attempts ---" -ForegroundColor Cyan
+Write-Host "Trying to login with wrong password 3 times..."
 
 for ($i = 1; $i -le 3; $i++) {
     Start-Sleep -Seconds 1
     Try-Login -email $testEmail -password $wrongPassword -attemptNumber $i
 }
 
-Write-Host "`n--- Шаг 3: Попытка входа после блокировки ---" -ForegroundColor Cyan
-Write-Host "Пробуем войти с правильным паролем (должно быть заблокировано)..."
+Write-Host "`n--- Step 3: Login attempt after blocking ---" -ForegroundColor Cyan
+Write-Host "Trying to login with correct password (should be blocked)..."
 Try-Login -email $testEmail -password $correctPassword -attemptNumber 4
 
-Write-Host "`n--- Шаг 4: Демонстрация автоматического сброса через 24 часа ---" -ForegroundColor Cyan
-Write-Host "В реальной системе блокировка снимется автоматически через 24 часа." -ForegroundColor Yellow
-Write-Host "Для демонстрации покажем, как администратор может сбросить блокировку." -ForegroundColor Yellow
+Write-Host "`n--- Step 4: Demonstrating automatic reset after 24 hours ---" -ForegroundColor Cyan
+Write-Host "In real system, blocking is automatically removed after 24 hours." -ForegroundColor Yellow
+Write-Host "For demonstration, we'll show how administrator can reset the block." -ForegroundColor Yellow
 
-# Создаем администратора для демонстрации сброса
-Write-Host "`n--- Создание администратора для сброса блокировки ---" -ForegroundColor Cyan
+# Create administrator for demonstration of reset
+Write-Host "`n--- Creating administrator to reset blocking ---" -ForegroundColor Cyan
 
 $adminData = @{
     name = @{
@@ -164,14 +164,14 @@ $adminData = @{
 
 try {
     $adminResponse = Invoke-WebRequest -Uri "http://localhost:8181/api/users" -Method POST -Body $adminData -ContentType "application/json"
-    Write-Host "✓ Администратор создан" -ForegroundColor Green
+    Write-Host "✓ Administrator created" -ForegroundColor Green
 } catch {
     if ($_.Exception.Response.StatusCode -eq 409) {
-        Write-Host "! Администратор уже существует" -ForegroundColor Yellow
+        Write-Host "! Administrator already exists" -ForegroundColor Yellow
     }
 }
 
-# Вход администратора
+# Administrator login
 $adminLoginData = @{
     email = "admin@demo.test"
     password = "Admin123!"
@@ -180,24 +180,24 @@ $adminLoginData = @{
 try {
     $adminLoginResponse = Invoke-WebRequest -Uri "http://localhost:8181/api/users/login" -Method POST -Body $adminLoginData -ContentType "application/json"
     $adminToken = ($adminLoginResponse.Content | ConvertFrom-Json).token
-    Write-Host "✓ Администратор вошел в систему" -ForegroundColor Green
+    Write-Host "✓ Administrator logged in" -ForegroundColor Green
 
-    # Сброс попыток входа
-    Write-Host "`n--- Сброс попыток входа администратором ---" -ForegroundColor Cyan
+    # Reset login attempts
+    Write-Host "`n--- Resetting login attempts by administrator ---" -ForegroundColor Cyan
     Reset-LoginAttempts -adminToken $adminToken -email $testEmail
 
-    # Проверка, что пользователь может войти
-    Write-Host "`n--- Проверка входа после сброса ---" -ForegroundColor Cyan
-    Try-Login -email $testEmail -password $correctPassword -attemptNumber "После сброса"
+    # Check that user can login
+    Write-Host "`n--- Checking login after reset ---" -ForegroundColor Cyan
+    Try-Login -email $testEmail -password $correctPassword -attemptNumber "After reset"
 
 } catch {
-    Write-Host "✗ Ошибка входа администратора: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "✗ Administrator login error: $($_.Exception.Message)" -ForegroundColor Red
 }
 
-Write-Host "`n=== Демонстрация завершена ===" -ForegroundColor Green
-Write-Host "Система блокировки работает следующим образом:" -ForegroundColor White
-Write-Host "• После 3 неудачных попыток входа пользователь блокируется на 24 часа" -ForegroundColor White
-Write-Host "• Блокировка применяется по email адресу" -ForegroundColor White
-Write-Host "• При успешном входе счетчик попыток сбрасывается" -ForegroundColor White
-Write-Host "• Администратор может сбросить блокировку принудительно" -ForegroundColor White
-Write-Host "• Блокировка автоматически снимается через 24 часа" -ForegroundColor White
+Write-Host "`n=== Demonstration completed ===" -ForegroundColor Green
+Write-Host "The blocking system works as follows:" -ForegroundColor White
+Write-Host "• After 3 failed login attempts, user is blocked for 24 hours" -ForegroundColor White
+Write-Host "• Blocking is applied by email address" -ForegroundColor White
+Write-Host "• On successful login, attempt counter is reset" -ForegroundColor White
+Write-Host "• Administrator can forcibly reset the blocking" -ForegroundColor White
+Write-Host "• Blocking is automatically removed after 24 hours" -ForegroundColor White

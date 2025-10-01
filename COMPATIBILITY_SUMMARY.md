@@ -24,15 +24,15 @@
 
 ### Tested in Real Time:
 ```bash
-✅ POST /users - Создание пользователя
-✅ POST /users/login - Авторизация (получен JWT)
-✅ GET /cards - Получение карточек
-✅ POST /cards - Создание карточки
-✅ GET /health - Статус сервера
+✅ POST /users - User creation
+✅ POST /users/login - Authorization (JWT received)
+✅ GET /cards - Getting cards
+✅ POST /cards - Card creation
+✅ GET /health - Server status
 ```
 
-### Для запуска в продакшене:
-1. Frontend: Настроить `VITE_API_BASE=https://your-backend.com`
-2. Backend: Добавить домен в `CORS_ORIGINS`
+### For production deployment:
+1. Frontend: Configure `VITE_API_BASE=https://your-backend.com`
+2. Backend: Add domain to `CORS_ORIGINS`
 
-## ✅ ВЕРДИКТ: Проекты на 100% совместимы и готовы к работе!
+## ✅ VERDICT: Projects are 100% compatible and ready to work!
